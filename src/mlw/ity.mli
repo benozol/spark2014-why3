@@ -300,6 +300,7 @@ type mask =
   | MaskVisible
   | MaskTuple of mask list
   | MaskGhost
+[@@deriving sexp]
 
 val mask_ghost : mask -> bool
 

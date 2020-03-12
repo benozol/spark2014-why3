@@ -496,8 +496,9 @@ let () =
          | Some Dep, None, _ ->
             let f = Filename.(chop_extension (basename filename)) in
             deps_file std_formatter true f mlw_file
-         (* | Some Ast, None, 0 ->
-          *     Ptree.pp_mlw_file std_formatter mlw_file *)
+         | Some Ast, None, 0 ->
+             Ptree.sexp_of_mlw_file mlw_file |>
+             Sexplib.Sexp.output_hum_indent 2 stdout
          | _, _, _ ->
              failwith "command line arguments"
         )
