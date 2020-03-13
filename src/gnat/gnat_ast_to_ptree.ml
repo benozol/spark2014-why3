@@ -1118,6 +1118,18 @@ let find_path needle node =
 
 exception E of string * int list
 
+let read_mlw_file filename =
+  let ic = open_in filename in
+  let buf = Lexing.from_channel ic in
+  let res = Lexer.parse_mlw_file buf in
+  close_in ic;
+  res
+
+let write_sexp_file sexp filename =
+  let oc = open_out filename in
+  Sexplib.Sexp.output_hum_indent 2 oc sexp;
+  close_out oc
+
 let read_channel env path filename c =
   let json = Yojson.Safe.from_channel c in
   let gnat_ast =
@@ -1125,8 +1137,12 @@ let read_channel env path filename c =
     with Gnat_ast.From_json.Unexpected_Json (s, node) ->
       raise (E (s, find_path node json)) in
   let mlw_file = mlw_file gnat_ast in
+  let filename0 = Filename.chop_extension filename^".mlw" in
+  if Sys.file_exists filename0 then
+    (let mlw_file0 = read_mlw_file filename0 in
+     write_sexp_file (sexp_of_mlw_file mlw_file0) (filename0^".sexp"));
+  write_sexp_file (sexp_of_mlw_file mlw_file) (filename^".sexp");
   Typing.type_mlw_file env path filename mlw_file
-
 
 let () =
   Env.register_format ~desc:"Gnat@ AST@ in@ JSON@ format"

@@ -143,4 +143,6 @@ let position_of_sexp sexp =
 
 let sexp_of_position (filename, line, bchar, echar) =
   Sexplib.Sexp.Atom
-    (Format.sprintf "%s %d %d-%d" filename line bchar echar)
+    (if try Sys.getenv "SEXP_POS" = "dummy" with Not_found -> false
+     then "<dummy>"
+     else Format.sprintf "%s %d %d-%d" filename line bchar echar)
