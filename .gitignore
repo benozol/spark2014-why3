@@ -203,6 +203,7 @@ pvsbin/
 /src/util/json_parser.ml
 /src/util/json_parser.conflicts
 /src/util/mlmpfr_wrapper.ml
+/src/util/mysexplib.ml
 /src/util/ppx_debug_optim
 
 # /src/session
@@ -213,6 +214,7 @@ pvsbin/
 # /src/tools
 /src/tools/why3wc.ml
 /src/tools/build
+/src/tools/why3pp_sexp.ml
 
 # /src/ide
 /src/ide/gtkcompat.ml
@@ -284,8 +286,6 @@ pvsbin/
 /examples/*/*.tex
 /examples/*/*/*.tex
 /examples/*/*/*/*.tex
-/examples/use_api/runstrat/makejob.opt
-/examples/use_api/runstrat/runstrat.opt
 /examples/vstte10_max_sum/vstte10_max_sum.ml
 /examples/euler001/euler001.ml
 /examples/sudoku/sudoku.ml

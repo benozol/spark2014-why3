@@ -1,7 +1,7 @@
 (********************************************************************)
 (*                                                                  *)
 (*  The Why3 Verification Platform   /   The Why3 Development Team  *)
-(*  Copyright 2010-2019   --   Inria - CNRS - Paris-Sud University  *)
+(*  Copyright 2010-2020   --   Inria - CNRS - Paris-Sud University  *)
 (*                                                                  *)
 (*  This software is distributed under the terms of the GNU Lesser  *)
 (*  General Public License version 2.1, with the special exception  *)
@@ -485,8 +485,15 @@ let cml_printer = Pdriver.{
     desc = "printer for CakeML code";
     implem_printer = {
         filename_generator = fg_cml;
-        decl_printer = print_decl;
-        prelude_printer = dummy_prelude_printer;
+        decl_printer = print_decl ~flat:false;
+        prelude_printer = default_prelude_printer;
+        header_printer = dummy_border_printer;
+        footer_printer = dummy_border_printer;
+      };
+    flat_printer = {
+        filename_generator = fg_cml;
+        decl_printer = print_decl ~flat:true;
+        prelude_printer = default_prelude_printer;
         header_printer = dummy_border_printer;
         footer_printer = dummy_border_printer;
       };
@@ -504,8 +511,15 @@ let sml_printer = Pdriver.{
     desc = "printer for SML code";
     implem_printer = {
         filename_generator = fg_sml;
-        decl_printer = print_decl;
-        prelude_printer = dummy_prelude_printer;
+        decl_printer = print_decl ~flat:false;
+        prelude_printer = default_prelude_printer;
+        header_printer = dummy_border_printer;
+        footer_printer = dummy_border_printer;
+      };
+    flat_printer = {
+        filename_generator = fg_sml;
+        decl_printer = print_decl ~flat:true;
+        prelude_printer = default_prelude_printer;
         header_printer = dummy_border_printer;
         footer_printer = dummy_border_printer;
       };
