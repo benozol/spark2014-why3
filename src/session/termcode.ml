@@ -24,11 +24,13 @@ let arg_extra_expl_prefix =
   ("--extra-expl-prefix",
    Arg.String (fun s -> expl_prefixes := s :: !expl_prefixes),
    "<s> register s as an additional prefix for VC explanations")
+
 let opt_extra_expl_prefix =
   let open Getopt in
   KLong "extra-expl-prefix",
   Hnd1 (AString, fun s -> expl_prefixes := s :: !expl_prefixes),
   "<expl> register <expl> as an additional prefix\nfor VC explanations"
+
 let match_prefix prefix attr =
   (* Return the list of all labels that match the given prefix. Raise Not_found
      if none is found *)
