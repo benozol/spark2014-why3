@@ -517,12 +517,13 @@ PLUG_PYTHON = py_ast py_parser py_lexer py_main
 PLUG_MICROC = mc_ast mc_parser mc_lexer mc_printer mc_main
 PLUG_ADA = ada_nametable ada_parser ada_lexer ada_main
 
-PLUGINS = genequlin dimacs tptp python microc ada
+PLUGINS = genequlin dimacs tptp python microc ada gnat_json
 
 TPTPMODULES = $(addprefix plugins/tptp/, $(PLUG_TPTP))
 PYTHONMODULES = $(addprefix plugins/python/, $(PLUG_PYTHON))
 MICROCMODULES = $(addprefix plugins/microc/, $(PLUG_MICROC))
 ADAMODULES = $(addprefix plugins/ada_terms/, $(PLUG_ADA))
+GNATJSONMODULES := $(addprefix plugins/gnat_json/, gnat_ast ptree_constructors gnat_ast_to_ptree)
 
 TPTPCMO = $(addsuffix .cmo, $(TPTPMODULES))
 TPTPCMX = $(addsuffix .cmx, $(TPTPMODULES))
@@ -535,6 +536,13 @@ MICROCCMX = $(addsuffix .cmx, $(MICROCMODULES))
 
 ADACMO = $(addsuffix .cmo, $(ADAMODULES))
 ADACMX = $(addsuffix .cmx, $(ADAMODULES))
+
+GNATJSONCMO = $(addsuffix .cmo, $(GNATJSONMODULES))
+GNATJSONCMX = $(addsuffix .cmx, $(GNATJSONMODULES))
+
+# How to load the plugins dynamically in spark instead?
+WHY3CMA += $(ADACMO) $(GNATJSONCMO)
+WHY3CMXA += $(ADACMX) $(GNATJSONCMX)
 
 ifeq (@enable_hypothesis_selection@,yes)
 PLUG_TRANSFORM += hypothesis_selection
@@ -552,7 +560,7 @@ PLUGMODULES = $(addprefix plugins/parser/, $(PLUG_PARSER)) \
 	      $(addprefix plugins/printer/, $(PLUG_PRINTER)) \
 	      $(addprefix plugins/transform/, $(PLUG_TRANSFORM)) \
 	      $(TPTPMODULES) $(PYTHONMODULES) $(MICROCMODULES) \
-              $(ADAMODULES)
+              $(ADAMODULES) $(GNATJSONMODULES)
 
 PLUGDEP = $(addsuffix .dep, $(PLUGMODULES))
 PLUGCMO = $(addsuffix .cmo, $(PLUGMODULES))
@@ -596,6 +604,8 @@ lib/plugins/microc.cmxs: $(MICROCCMX)
 lib/plugins/microc.cmo: $(MICROCCMO)
 lib/plugins/ada.cmxs: $(ADACMX)
 lib/plugins/ada.cmo: $(ADACMO)
+lib/plugins/gnat_json.cmxs: $(GNATJSONCMX)
+lib/plugins/gnat_json.cmo: $(GNATJSONCMO)
 
 # depend and clean targets
 
@@ -724,27 +734,25 @@ clean::
 # GNATWhy3 #
 ############
 
-GNATASTMODULES := $(addprefix src/gnat/, gnat_ast ptree_constructors gnat_ast_to_ptree)
-
 GNAT_SERVER_FILES := gnat_util gnat_loc gnat_expl gnat_server
 GNATWHY3_FILES := gnat_util gnat_loc gnat_expl gnat_counterexamples gnat_config\
 	      gnat_scheduler gnat_manual gnat_report gnat_objectives gnat_main
 
 GNATWHY3MODULES := $(addprefix src/gnat/, $(GNATWHY3_FILES))
-GNATWHY3DEP = $(addsuffix .dep, $(GNATASTMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
-GNATWHY3CMO = $(addsuffix .cmo, $(GNATASTMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
+GNATWHY3DEP = $(addsuffix .dep, $(GNATJSONMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
+GNATWHY3CMO = $(addsuffix .cmo, $(GNATJSONMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
 # Import external printer parser for Ada
-GNATWHY3CMX = $(addsuffix .cmx, $(GNATASTMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
-$(GNATWHY3CMO) $(GNATWHY3CMX): INCLUDES += -I src/gnat -I src/util -I plugins/ada_terms
-$(GNATWHY3DEP): DEPFLAGS += -I src/gnat -I plugins/ada_terms
+GNATWHY3CMX = $(addsuffix .cmx, $(GNATJSONMODULES) $(ADAMODULES) $(GNATWHY3MODULES))
+$(GNATWHY3CMO) $(GNATWHY3CMX): INCLUDES += -I src/gnat -I src/util -I plugins/ada_terms -I plugins/gnat_json
+$(GNATWHY3DEP): DEPFLAGS += -I src/gnat -I plugins/ada_terms -I plugins/gnat_json
 
 GNAT_SERVER_MODULES := $(addprefix src/gnat/, $(GNAT_SERVER_FILES))
-GNAT_SERVER_DEP = $(addsuffix .dep, $(GNATASTMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
-GNAT_SERVER_CMO = $(addsuffix .cmo, $(GNATASTMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
+GNAT_SERVER_DEP = $(addsuffix .dep, $(GNATJSONMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
+GNAT_SERVER_CMO = $(addsuffix .cmo, $(GNATJSONMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
 # Import external printer parser for Ada
-GNAT_SERVER_CMX = $(addsuffix .cmx, $(GNATASTMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
-$(GNAT_SERVER_CMO) $(GNAT_SERVER_CMX): INCLUDES += -I src/gnat -I src/util -I plugins/ada_terms
-$(GNAT_SERVER_DEP): DEPFLAGS += -I src/gnat -I plugins/ada_terms
+GNAT_SERVER_CMX = $(addsuffix .cmx, $(GNATJSONMODULES) $(ADAMODULES) $(GNAT_SERVER_MODULES))
+$(GNAT_SERVER_CMO) $(GNAT_SERVER_CMX): INCLUDES += -I src/gnat -I src/util -I plugins/ada_terms -I plugins/gnat_json
+$(GNAT_SERVER_DEP): DEPFLAGS += -I src/gnat -I plugins/ada_terms -I plugins/gnat_json
 
 depend: $(GNAT_SERVER_DEP)
 
@@ -753,11 +761,11 @@ depend: $(GNAT_SERVER_DEP)
 byte: bin/gnatwhy3.byte bin/gnat_server.byte
 opt:  bin/gnatwhy3.opt bin/gnat_server.opt
 
-bin/gnatwhy3.opt: lib/why3/why3.cmxa $(GNATWHY3CMX)
-bin/gnat_server.opt: lib/why3/why3.cmxa $(GNAT_SERVER_CMX)
+bin/gnatwhy3.opt: lib/why3/why3.cmxa $(GNATWHY3CMX) $(GNATJSONCMX)
+bin/gnat_server.opt: lib/why3/why3.cmxa $(GNAT_SERVER_CMX) $(GNATJSONCMX)
 
-bin/gnatwhy3.byte: lib/why3/why3.cma $(GNATWHY3CMO)
-bin/gnat_server.byte: lib/why3/why3.cma $(GNAT_SERVER_CMO)
+bin/gnatwhy3.byte: lib/why3/why3.cma $(GNATWHY3CMO) $(GNATJSONCMO)
+bin/gnat_server.byte: lib/why3/why3.cma $(GNAT_SERVER_CMO) $(GNATJSONCMO)
 
 install_no_local::
 	cp -f bin/gnatwhy3.@OCAMLBEST@ $(BINDIR)/gnatwhy3$(EXE)
@@ -829,7 +837,7 @@ install_spark2014_dev: install_spark2014
 	$(MKDIR_P) $(DATADIR)/why3/lang
 	$(INSTALL_DATA) share/lang/why3.lang $(DATADIR)/why3/lang/why3.lang
 
-install_spark2014:
+install_spark2014: install-bin
 	mkdir -p $(BINDIR)
 	mkdir -p $(DATADIR)/why3
 	mkdir -p $(DATADIR)/why3/theories

@@ -230,6 +230,7 @@ let save_session_and_exit c signum =
  *)
 
 let _ =
+  if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
