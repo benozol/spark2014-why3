@@ -49,8 +49,8 @@ let next_pos =
     incr counter;
     Loc.user_position "" !counter 0 0
 
-let todo fmt _str =
-  fprintf fmt "__todo__"
+let todo fmt str =
+  fprintf fmt "__todo__ (* %s *)" str
 (* fprintf fmt "<NOT IMPLEMENTED: %s>" str *)
 
 let pp_sep f fmt () =
@@ -610,14 +610,14 @@ and pp_term =
         pp_not pp_term fmt t
     | Tif (t1, t2, t3) ->
         pp_if pp_term fmt t1 t2 t3
-    | Tquant (quant, binders, [], t) ->
+    | Tquant (quant, binders, triggers, t) ->
         let quant = match quant with
           | Dterm.DTforall -> "forall"
           | Dterm.DTexists -> "exists"
           | Dterm.DTlambda -> "lambda" in
-        fprintf fmt "@[<hv 2>%s%a.@ %a@]" quant pp_comma_binders binders pp_term.marked t
-    | Tquant (_, _, _::_, _) ->
-        todo fmt "quantifier with triggers"
+        let pp_terms = pp_print_list ~pp_sep:(pp_sep ", ") pp_term.marked in
+        let pp_triggers = pp_print_opt_list ~prefix:" [" ~sep:" | " ~suffix:"]" pp_terms in
+        fprintf fmt "@[<hv 2>%s%a%a.@ %a@]" quant pp_comma_binders binders pp_triggers triggers pp_term.marked t
     | Tattr (attr, t) ->
         let term_closed t = match t.term_desc with
           | Tattr _ -> true
