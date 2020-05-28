@@ -831,7 +831,10 @@ install_spark2014_dev: install_spark2014
 	done
 	$(INSTALL_DATA) share/images/*.png $(DATADIR)/why3/images
 	$(MKDIR_P) $(DATADIR)/why3/lang
-	$(INSTALL_DATA) share/lang/why3.lang $(DATADIR)/why3/lang/why3.lang
+	# Install all Why3 tools
+	for f in bin/why3*.@OCAMLBEST@; do cp "$$f" $(BINDIR)/"$$(basename "$$f" .@OCAMLBEST@)$(EXE)"; done
+	# Install lang files for Why3 IDE
+	for f in share/lang/*.lang; do $(INSTALL_DATA) "$$f" "$(DATADIR)/why3/lang/$$(basename $$f)"; done
 
 install_spark2014: install-bin
 	mkdir -p $(BINDIR)
