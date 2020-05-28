@@ -540,10 +540,6 @@ ADACMX = $(addsuffix .cmx, $(ADAMODULES))
 GNATJSONCMO = $(addsuffix .cmo, $(GNATJSONMODULES))
 GNATJSONCMX = $(addsuffix .cmx, $(GNATJSONMODULES))
 
-# How to load the plugins dynamically in spark instead?
-WHY3CMA += $(ADACMO) $(GNATJSONCMO)
-WHY3CMXA += $(ADACMX) $(GNATJSONCMX)
-
 ifeq (@enable_hypothesis_selection@,yes)
 PLUG_TRANSFORM += hypothesis_selection
 PLUGINS += hypothesis_selection
