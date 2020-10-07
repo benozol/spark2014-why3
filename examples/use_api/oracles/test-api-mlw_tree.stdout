@@ -1,7 +1,7 @@
 module M1
   use  int.Int
   
-  goal g: Int.(=) 4 (Int.(+) 2 2)
+  goal g: Int.( = ) 4 (Int.( + ) 2 2)
 end
 
 module M2
@@ -10,7 +10,7 @@ module M2
   let f (x : int)
     requires { x = 6 }
     ensures { result = 42 } =
-    Int.(*) x 7
+    Int.( * ) x 7
 end
 
 module M3
@@ -18,8 +18,8 @@ module M3
   use  ref.Ref
   
   let f (_ : ())
-    ensures { Int.(>=) result 0 } =
-    let x = Ref.ref 42 in Ref.(!) x
+    ensures { Int.( >= ) result 0 } =
+    let x = Ref.ref 42 in Ref.( ! ) x
 end
 
 module M4
@@ -926,7 +926,7 @@ Task 4: theory Task
                elts a1 = set (elts a) 0 42 /\ a1 = a[0 <- 42]' -> a1[0]' = 42)
 end
 
-On task 1, alt-ergo answers Valid (0.0xs, 0 steps)
-On task 2, alt-ergo answers Valid (0.0xs, 2 steps)
-On task 3, alt-ergo answers Valid (0.0xs, 0 steps)
-On task 4, alt-ergo answers Valid (0.0xs, 8 steps)
+On task 1, alt-ergo answers valid (0.0xs, 0 steps).
+On task 2, alt-ergo answers valid (0.0xs, 2 steps).
+On task 3, alt-ergo answers valid (0.0xs, 0 steps).
+On task 4, alt-ergo answers valid (0.0xs, 8 steps).

@@ -82,3 +82,19 @@ let timing_step_completed str =
 
 let get_timings () = timing_map
 
+type _ cmptr = Cmptr : {proj: 'a -> 'b; cmp: 'b -> 'b -> int} -> 'a cmptr
+
+let cmptr proj cmp = Cmptr {proj; cmp}
+
+let rec cmp ls x y = match ls with
+  | [] -> 0
+  | Cmptr c :: ls ->
+      match c.cmp (c.proj x) (c.proj y) with
+      | 0 -> cmp ls x y
+      | n -> n
+
+let rec cmp_lists ls l1 l2 = match l1, l2 with
+  | h1::t1, h2::t2 ->
+      let ls = [cmptr fst (cmp ls); cmptr snd (cmp_lists ls)] in
+      cmp ls (h1, t1) (h2, t2)
+  | [], _ -> -1 | _, [] -> 1

@@ -21,6 +21,9 @@ let debug = Debug.register_info_flag "model_parser"
          the@ counter-example@ model."
 *)
 
+let debug_check_ce = Debug.register_info_flag "check-ce"
+    ~desc:"Debug@ info@ for@ --check-ce"
+
 (*
 ***************************************************************
 **  Counter-example model values
@@ -313,7 +316,7 @@ and print_record_human fmt r =
       (* Special pretty printing for record with only one element *)
       fprintf fmt "%a" print_model_value_human value
   | _ ->
-      fprintf fmt "@[%a@]"
+      fprintf fmt "@[<hv1>%a@]"
         (Pp.print_list_delim ~start:Pp.lbrace ~stop:Pp.rbrace ~sep:Pp.semi
            (fun fmt (f, v) ->
              fprintf fmt "@[%s =@ %a@]" f print_model_value_human v))
@@ -502,6 +505,9 @@ let get_model_elements m =
   List.concat
     (List.concat (List.map Mint.values (Mstr.values m.model_files)))
 
+let get_model_term_loc m = m.vc_term_loc
+let get_model_term_attrs m = m.vc_term_attrs
+
 type model_parser = string -> printer_mapping -> model
 type raw_model_parser = printer_mapping -> string -> model_element list
 
@@ -528,41 +534,39 @@ let fix_loc_kind ~at_loc name =
 let cmp_attrs a1 a2 =
   String.compare a1.attr_string a2.attr_string
 
-let print_model_element ~at_loc ~print_attrs ~print_model_value ~me_name_trans fmt m_element =
+let print_model_element ?(print_locs=false) ~at_loc ~print_attrs ~print_model_value ~me_name_trans fmt m_element =
   match m_element.me_name.men_kind with
   | Error_message -> fprintf fmt "%s" m_element.me_name.men_name
   | _ ->
       let m_element = {m_element with me_name=fix_loc_kind ~at_loc m_element.me_name} in
-      fprintf fmt "@[<hv2>@[<hov2>%s%t =@]@ %a@]"
-        (me_name_trans m_element.me_name)
+      fprintf fmt "@[<hv2>@[<hov2>%s%t%t =@]@ %a@]" (me_name_trans m_element.me_name)
         (fun fmt ->
            if print_attrs then
-             fprintf fmt ",@ [%a]"
-               (Pp.print_list Pp.comma Pretty.print_attr)
+             fprintf fmt " %a" Pp.(print_list space Pretty.print_attr)
                (List.sort cmp_attrs (Sattr.elements m_element.me_name.men_attrs)))
+        (fun fmt ->
+           if print_locs then fprintf fmt " (%a)"
+               (Pp.print_option_or_default "NO LOC "Pretty.print_loc) m_element.me_location)
         print_model_value m_element.me_value
 
 let print_model_elements ~at_loc ~print_attrs ?(sep = Pp.newline)
     ~print_model_value ~me_name_trans fmt m_elements =
   fprintf fmt "@[%a@]"
     (Pp.print_list sep
-       (print_model_element ~at_loc ~print_attrs ~print_model_value
+       (print_model_element ?print_locs:None ~at_loc ~print_attrs ~print_model_value
           ~me_name_trans))
     m_elements
 
-let print_model_file ~print_attrs ~print_model_value ~me_name_trans fmt filename model_file =
+let print_model_file ~print_attrs ~print_model_value ~me_name_trans fmt (filename, model_file) =
   (* Relativize does not work on nighly bench: using basename instead. It
      hides the local paths. *)
   let filename = Filename.basename filename in
-  fprintf fmt "@[<v 0>File %s:@\n" filename ;
-  Mint.iter
-    (fun line m_elements ->
-      fprintf fmt "  @[<v 2>Line %d:@\n" line ;
-      print_model_elements ~at_loc:(filename, line) ~print_attrs
-        ~print_model_value ~me_name_trans fmt m_elements ;
-      fprintf fmt "@]@\n")
-    model_file ;
-  fprintf fmt "@]"
+  let pp fmt (line, m_elements) =
+    fprintf fmt "  @[<v 2>Line %d:@ %a@]" line
+      (print_model_elements ?sep:None ~at_loc:(filename, line) ~print_attrs
+         ~print_model_value ~me_name_trans) m_elements in
+  fprintf fmt "@[<v 0>File %s:@ %a@]" filename
+    Pp.(print_list space pp) (Mint.bindings model_file)
 
 let why_name_trans {men_kind; men_name} =
   match men_kind with
@@ -570,7 +574,7 @@ let why_name_trans {men_kind; men_name} =
   | Old -> "old "^men_name
   | At l -> men_name^" at "^l
   (* | Loop_before -> "[before loop] "^men_name *)
-  | Loop_previous_iteration -> "[previous iteration] "^men_name
+  | Loop_previous_iteration -> "[before iteration] "^men_name
   | Loop_current_iteration -> "[current iteration] "^men_name
   | _ -> men_name
 
@@ -582,8 +586,8 @@ let json_name_trans {men_kind; men_name} =
 
 let print_model ~print_attrs ?(me_name_trans = why_name_trans)
     ~print_model_value fmt model =
-  Mstr.iter (print_model_file ~print_attrs ~print_model_value ~me_name_trans fmt)
-    model.model_files
+  Pp.print_list Pp.newline (print_model_file ~print_attrs ~print_model_value ~me_name_trans)
+    fmt (Mstr.bindings model.model_files)
 
 let print_model_human ?(me_name_trans = why_name_trans) fmt model =
   print_model ~me_name_trans ~print_model_value:print_model_value_human fmt model
@@ -739,7 +743,7 @@ let print_model_element_json me_name_to_str fmt me =
     | Other -> fprintf fmt "%a" Json_base.string "other"
     | Loop_before -> fprintf fmt "%a" Json_base.string "before_loop"
     | Loop_previous_iteration ->
-        fprintf fmt "%a" Json_base.string "previous_iteration"
+        fprintf fmt "%a" Json_base.string "before_iteration"
     | Loop_current_iteration ->
         fprintf fmt "%a" Json_base.string "current_iteration" in
   let print_name fmt = Json_base.string fmt (me_name_to_str me.me_name) in
@@ -841,28 +845,31 @@ let add_to_model ?vc_term_attrs model model_element =
       let el = model_element.me_name in
       (* This removes elements that are duplicated *)
       let found_elements =
-        List.find_all
+        List.exists
           (fun x ->
             let xme = x.me_name in
             Ident.get_model_trace_string ~name:xme.men_name ~attrs:xme.men_attrs
             = Ident.get_model_trace_string ~name:el.men_name ~attrs:el.men_attrs
             &&
+              pos = Opt.get_def Loc.dummy_position x.me_location
             (* TODO Add an efficient version of symmetric difference to extset *)
-            let symm_diff =
-              Sattr.diff
-                (Sattr.union x.me_name.men_attrs el.men_attrs)
-                (Sattr.inter x.me_name.men_attrs el.men_attrs) in
-            Sattr.for_all
-              (fun x -> not (Strings.has_prefix "at" x.attr_string))
-              symm_diff)
+            (* FIXME the following comparison removes too many elements*)
+            (* let symm_diff =
+             *   Sattr.diff
+             *     (Sattr.union xme.men_attrs el.men_attrs)
+             *     (Sattr.inter xme.men_attrs el.men_attrs) in
+             * Sattr.for_all
+             *   (fun x -> not (Strings.has_prefix "at" x.attr_string))
+             *   symm_diff *)
+          )
           elements in
       let model_element =
         match vc_term_attrs with
         | Some vc_term_attrs ->
             fix_kind (filename, line_number) vc_term_attrs model_element
         | None -> model_element in
-      let elements =
-        if found_elements <> [] then elements else model_element :: elements in
+      let elements = if found_elements then elements
+                     else model_element :: elements in
       let model_file = Mint.add line_number elements model_file in
       Mstr.add filename model_file model
 
@@ -1087,7 +1094,164 @@ let spark_filter_model (m: model) =
     model_files = files;
     vc_term_attrs = m.vc_term_attrs }
 
+type verdict = Good_model | Bad_model | Dont_know
 
+type exec_kind = ExecAbstract | ExecConcrete
+
+type log_entry_desc =
+  | Val_from_model of (vsymbol * string)
+  | Exec_call of (Expr.rsymbol option * exec_kind)
+  | Exec_pure of (Term.lsymbol * exec_kind)
+  | Exec_stucked of string
+  | Exec_failed of string
+  | Exec_ended
+
+type log_entry = {
+    log_desc : log_entry_desc;
+    log_loc  : Loc.position;
+}
+
+type exec_log = log_entry list
+(* new log elements are added to the head of the list *)
+
+let empty_log = []
+
+let add_log_entry log_desc log_loc exec_log = {log_desc; log_loc} :: exec_log
+
+let add_val_to_log vs v loc exec_log =
+  add_log_entry (Val_from_model (vs,v)) loc exec_log
+
+let add_call_to_log rs kind loc exec_log =
+  add_log_entry (Exec_call (rs,kind)) loc exec_log
+
+let add_pure_call_to_log ls kind loc exec_log =
+  add_log_entry (Exec_pure (ls,kind)) loc exec_log
+
+let add_failed_to_log s loc exec_log =
+  add_log_entry (Exec_failed s) loc exec_log
+
+let add_stucked_to_log s loc exec_log =
+  add_log_entry (Exec_stucked s) loc exec_log
+
+let add_exec_ended_to_log loc exec_log =
+  add_log_entry Exec_ended loc exec_log
+
+let log_to_list exec_log = List.rev exec_log
+
+let exec_kind_to_string ?(cap=true) = function
+  | ExecAbstract -> if cap then "Abstract" else "abstract"
+  | ExecConcrete -> if cap then "Concrete" else "concrete"
+
+let print_exec_log ~json fmt entry_log =
+  let entry_log = List.rev entry_log in
+  if json then
+    let open Json_base in
+    let string f = kasprintf (fun s -> String s) f in
+    let print_json_kind fmt = function
+      | ExecAbstract -> print_json fmt (string "ABSTRACT")
+      | ExecConcrete -> print_json fmt (string "CONCRETE") in
+    let print_log_entry fmt = function
+      | Val_from_model (vs, s) ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
+            (print_json_field "kind" print_json) (string "VAL_FROM_MODEL")
+            (print_json_field "vs" print_json) (string "%a" Pretty.print_vs vs)
+            (print_json_field "value" print_json) (String s)
+      | Exec_call (ors, kind) ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
+            (print_json_field "kind" print_json) (string "EXEC_CALL")
+            (print_json_field "rs" print_json) (match ors with Some rs -> string "%a" Ident.print_decoded rs.Expr.rs_name.id_string | None -> Null)
+            (print_json_field "kind" print_json_kind) kind
+      | Exec_pure (ls, kind) ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
+            (print_json_field "kind" print_json) (string "EXEC_PURE")
+            (print_json_field "ls" print_json) (string "%a" Pretty.print_ls ls)
+            (print_json_field "kind" print_json_kind) kind
+      | Exec_failed reason ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
+            (print_json_field "kind" print_json) (string "FAILED")
+            (print_json_field "reason" print_json) (String reason)
+      | Exec_stucked reason ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
+            (print_json_field "kind" print_json) (string "STUCKED")
+            (print_json_field "reason" print_json) (String reason)
+      | Exec_ended ->
+          fprintf fmt "@[@[<hv1>{%a@]}@]"
+            (print_json_field "kind" print_json) (string "ENDED") in
+    let print_json_entry fmt e =
+      fprintf fmt "@[@[<hv1>{@[<hv2>%a@];@ @[<hv2>%a@]@]}@]"
+        (print_json_field "loc" Pretty.print_json_loc) e.log_loc
+        (print_json_field "entry" print_log_entry) e.log_desc in
+    fprintf fmt "@[@[<hv1>[%a@]@]"
+      Pp.(print_list comma print_json_entry) entry_log
+  else
+    let rec loop file line fmt = function
+      | [] -> fprintf fmt "@]@]"
+      | { log_desc; log_loc } :: rest ->
+          let f, l, _, _ = Loc.get log_loc in
+          if file <> f then (
+            if file <> "" then
+              fprintf fmt "@]@]@\n";
+            fprintf fmt "@[<v2>File %s:@\n" (Filename.basename f) );
+          if line <> l then (
+            if line <> -1 && (file = f || file = "") then
+              fprintf fmt "@]@\n";
+            fprintf fmt "@[<v2>Line %d:@\n" l )
+          else
+            fprintf fmt "@\n";
+          begin match log_desc with
+            | Val_from_model (vs, v) ->
+                fprintf fmt "%a = %s" Ident.print_decoded vs.vs_name.id_string v;
+            | Exec_call (None, k) ->
+                fprintf fmt "%s execution of lambda function"
+                  (exec_kind_to_string k)
+            | Exec_call (Some rs, k) ->
+                fprintf fmt "%s execution of %a" (exec_kind_to_string k)
+                  Ident.print_decoded rs.Expr.rs_name.id_string
+            | Exec_pure (ls,k) ->
+                fprintf fmt "%s execution of %a" (exec_kind_to_string k)
+                  Ident.print_decoded ls.ls_name.id_string
+            | Exec_failed msg ->
+                fprintf fmt "Property failure: %s" msg
+            | Exec_stucked msg ->
+                fprintf fmt "Execution got stucked: %s" msg
+            | Exec_ended ->
+                fprintf fmt "Execution of main function terminated normally"
+          end;
+          loop f l fmt rest in
+    if entry_log <> [] then
+      fprintf fmt "@[<v>%a@]@]" (loop "" (-1)) entry_log
+
+type full_verdict = {
+    verdict  : verdict;
+    reason   : string;
+    exec_log : exec_log;
+  }
+
+let print_verdict fmt = function
+  | Good_model -> fprintf fmt "good model"
+  | Bad_model -> fprintf fmt "bad model"
+  | Dont_know -> fprintf fmt "don't know"
+
+let print_full_verdict fmt v =
+  fprintf fmt "%a (%s)@,%a"
+    print_verdict v.verdict v.reason (print_exec_log ~json:false) v.exec_log
+
+type check_model_result =
+  | Cannot_check_model of {reason: string}
+  | Check_model_result of {abstract: full_verdict; concrete: full_verdict}
+
+let print_check_model_result fmt = function
+  | Cannot_check_model r ->
+      fprintf fmt "@[Cannot check model (%s)@]" r.reason
+  | Check_model_result r ->
+      fprintf fmt "@[<v>@[<hv2>- Concrete: %a@]@\n@[<hv2>- Abstract: %a@]@]"
+        print_full_verdict r.concrete print_full_verdict r.abstract
+
+type check_model = model -> check_model_result
+
+let default_check_model (_: model) =
+  let reason = "not checking CE model" in
+  Cannot_check_model {reason}
 
 (*
 ***************************************************************

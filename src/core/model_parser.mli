@@ -9,6 +9,9 @@
 (*                                                                  *)
 (********************************************************************)
 
+val debug_check_ce : Debug.flag
+
+
 (** {1 Counter-example model values} *)
 
 type float_type =
@@ -137,7 +140,9 @@ val default_model : model
 
 (** {2 Querying the model} *)
 
-val get_model_elements: model -> model_element list
+val get_model_elements : model -> model_element list
+val get_model_term_loc : model -> Loc.position option
+val get_model_term_attrs : model -> Ident.Sattr.t
 
 val print_model :
   ?me_name_trans:(model_element_name -> string) ->
@@ -252,6 +257,67 @@ val interleave_with_source :
     locations modified so that it takes into account that counterexamples
     were added.
 *)
+
+(** Result when checking a CE model *)
+
+type verdict = Good_model | Bad_model | Dont_know
+
+type exec_kind = ExecAbstract | ExecConcrete
+
+type log_entry_desc =
+  | Val_from_model of (Term.vsymbol * string)
+  (** values taken from model during interpretation *)
+  | Exec_call of (Expr.rsymbol option * exec_kind)
+  (** executed function call, lambda if no rsymbol *)
+  | Exec_pure of (Term.lsymbol * exec_kind)
+  (** executed pure function call *)
+  | Exec_stucked of string
+  (** stucked execution information *)
+  | Exec_failed of string
+  (** failed execution information *)
+  | Exec_ended
+  (** execution terminated normally *)
+
+type log_entry = {
+    log_desc : log_entry_desc;
+    log_loc  : Loc.position;
+}
+
+type exec_log
+
+val empty_log : exec_log
+val add_log_entry : log_entry_desc -> Loc.position -> exec_log -> exec_log
+val add_val_to_log : Term.vsymbol -> string -> Loc.position -> exec_log -> exec_log
+val add_call_to_log : Expr.rsymbol option -> exec_kind -> Loc.position -> exec_log -> exec_log
+val add_pure_call_to_log : Term.lsymbol -> exec_kind -> Loc.position -> exec_log -> exec_log
+val add_failed_to_log : string -> Loc.position -> exec_log -> exec_log
+val add_stucked_to_log : string -> Loc.position -> exec_log -> exec_log
+val add_exec_ended_to_log : Loc.position -> exec_log -> exec_log
+val log_to_list : exec_log -> log_entry list
+val print_exec_log : json:bool -> exec_log Pp.pp
+
+type full_verdict = {
+    verdict  : verdict;
+    reason   : string;
+    exec_log : exec_log;
+  }
+
+val print_verdict : verdict Pp.pp
+val print_full_verdict : full_verdict Pp.pp
+
+(** Checking a model either results in a reason why it was not possible or a full
+    verdict from abstract and concrete RAC *)
+type check_model_result =
+  | Cannot_check_model of {reason: string}
+  | Check_model_result of {abstract: full_verdict; concrete: full_verdict}
+
+val print_check_model_result : check_model_result Pp.pp
+
+type check_model = model -> check_model_result
+(** Check the validity of a CE model. *)
+
+val default_check_model : check_model
+(** Completely incomplete model check *)
 
 (*
 ***************************************************************

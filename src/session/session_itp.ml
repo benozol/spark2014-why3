@@ -543,7 +543,7 @@ let print_proof_attempt fmt pa =
   fprintf fmt "%a tl=%d %a"
           Whyconf.print_prover pa.prover
           pa.limit.Call_provers.limit_time
-          (Pp.print_option (Call_provers.print_prover_result ~json_model:false))
+          (Pp.print_option (Call_provers.print_prover_result ?json:None ?check_ce:None))
           pa.proof_state
 
 let rec print_proof_node s (fmt: Format.formatter) p =
@@ -1006,7 +1006,7 @@ let default_unknown_result =
        Call_provers.pr_output = "";
        Call_provers.pr_status = Unix.WEXITED 0;
        Call_provers.pr_steps = -1;
-       Call_provers.pr_model = Model_parser.default_model;
+       Call_provers.pr_model = None;
      }
 
 let load_result a (path,acc) r =
@@ -1050,7 +1050,7 @@ let load_result a (path,acc) r =
        Call_provers.pr_output = "";
        Call_provers.pr_status = Unix.WEXITED 0;
        Call_provers.pr_steps = steps;
-       Call_provers.pr_model = Model_parser.default_model;
+       Call_provers.pr_model = None;
        }
      in (path,Some res)
   | "undone" | "unedited" -> (path,acc)
@@ -1454,12 +1454,11 @@ let load_session (dir : string) =
   let file = Filename.concat dir db_filename in
   if Sys.file_exists file then
     try
-      let xml,sum_shape_version =
-        read_file_session_and_shapes (Termcode.Gshape.create ())
-          (* session.shapes.session_global_shapes *) dir file
-      in
+      let gs = Termcode.Gshape.create () in
+      let xml,sum_shape_version = read_file_session_and_shapes gs dir file in
       let session = empty_session ?sum_shape_version dir in
       build_session ?sum_shape_version session xml.Xml.content;
+      Termcode.Gshape.copy gs session.shapes.session_global_shapes;
       session
     with
     | Sys_error msg ->

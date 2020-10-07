@@ -28,7 +28,9 @@ let opt_theory = ref None
 let opt_trans = ref []
 let opt_metas = ref []
 (* Option for printing counterexamples with JSON formatting *)
-let opt_json = ref false
+let opt_json = ref None
+let opt_check_ce_model = ref false
+let opt_rac_prover = ref None
 
 let add_opt_file x =
   let tlist = Queue.create () in
@@ -119,7 +121,13 @@ let option_list =
     "<file> specify a prover's driver (conflicts with -P)";
     Key ('o', "output"), Hnd1 (AString, fun s -> opt_output := Some s),
     "<dir> print the selected goals to separate files in <dir>";
-    KLong "json", Hnd0 (fun () -> opt_json := true),
+    KLong "check-ce", Hnd0 (fun () -> opt_check_ce_model := true),
+    " check the counter-examples using runtime assertion checking (RAC)";
+    KLong "rac-prover", Hnd1 (AString, fun s -> opt_rac_prover := Some s),
+    " use prover in RAC when term reduction is insufficient";
+    KLong "all-json", Hnd0 (fun () -> opt_json := Some `All),
+    " print output in JSON format";
+    KLong "json", Hnd0 (fun () -> opt_json := Some `Model),
     " print counterexamples in JSON format";
     KLong "print-theory", Hnd0 (fun () -> opt_print_theory := true),
     " print selected theories";
@@ -225,21 +233,59 @@ let output_task drv fname _tname th task dir =
   Driver.print_task drv (formatter_of_out_channel cout) task;
   close_out cout
 
+let print_result ?json ~check_ce fmt (fname, loc, goal_name, expls, res) =
+  if json = Some `All then
+    let open Json_base in
+    let print_loc fmt (loc, fname) =
+      match loc with
+      | None -> fprintf fmt "{%a}" (print_json_field "filename" print_json) (String fname)
+      | Some loc -> Pretty.print_json_loc fmt loc in
+    let print_term fmt (loc, fname, goal_name, expls) =
+      fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
+        (print_json_field "loc" print_loc) (loc, fname)
+        (print_json_field "goal_name" print_json) (String goal_name)
+        (print_json_field "explanations" print_json) (List (List.map (fun s -> String s) expls)) in
+    fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
+      (print_json_field "term" print_term) (loc, fname, goal_name, expls)
+      (print_json_field "prover-result" (Call_provers.print_prover_result ?json ~check_ce)) res
+  else (
+    ( match loc with
+      | None -> fprintf fmt "File %s:@\n" fname
+      | Some loc -> Loc.report_position Format.std_formatter loc );
+    ( if expls = [] then
+        fprintf fmt "@[<hov>Verification@ condition@ %s.@]" goal_name
+      else
+        let expls = String.capitalize_ascii (String.concat ", " expls) in
+        fprintf fmt "@[<hov>Formula@ `%s'@ from@ verification@ condition@ %s.@]" expls goal_name );
+    fprintf fmt "@\n@[<v>Prover result is: %a@]"
+      Call_provers.(print_prover_result ?json ~check_ce) res;
+    fprintf fmt "@\n" )
+
 let unproved = ref false
 
-let do_task drv fname tname (th : Theory.theory) (task : Task.task) =
+let do_task env drv fname tname (th : Theory.theory) (task : Task.task) =
   let limit =
     { Call_provers.empty_limit with
       Call_provers.limit_time = timelimit;
       limit_mem = memlimit } in
   match !opt_output, !opt_command with
     | None, Some command ->
-        let call =
-          Driver.prove_task ~command ~limit drv task in
+        let check_ce = !opt_check_ce_model in
+        let check_model =
+          if check_ce then
+            let open Pinterp in
+            let trans = Compute.normalize_goal_transf_all env in
+            let prover = Opt.map (rac_prover config env ~limit_time:2) !opt_rac_prover in
+            let rac_reduce = rac_reduce_config ~trans ?prover () in
+            Some (check_model rac_reduce env (Pmodule.restore_module th))
+          else None in
+        let call = Driver.prove_task ~command ~limit ?check_model drv task in
         let res = Call_provers.wait_on_call call in
-        printf "%s %s %s: %a@." fname tname
-          (task_goal task).Decl.pr_name.Ident.id_string
-          (Call_provers.print_prover_result ~json_model:!opt_json) res;
+        let t = task_goal_fmla task in
+        let expls = Termcode.get_expls_fmla t in
+        let goal_name = (task_goal task).Decl.pr_name.Ident.id_string in
+        printf "%a@." (print_result ?json:!opt_json ~check_ce)
+          (fname, t.Term.t_loc, goal_name, expls, res);
         if res.Call_provers.pr_answer <> Call_provers.Valid then unproved := true
     | None, None ->
         Driver.print_task drv std_formatter task
@@ -256,7 +302,7 @@ let do_tasks env drv fname tname th task =
       List.rev_append (Trans.apply tr task) acc) [] tasks)
   in
   let tasks = List.fold_left apply [task] trans in
-  List.iter (do_task drv fname tname th) tasks
+  List.iter (do_task env drv fname tname th) tasks
 
 let do_theory env drv fname tname th glist elist =
   if !opt_print_theory then

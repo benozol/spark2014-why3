@@ -1,54 +1,147 @@
 Weakest Precondition
+Model 0:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 1:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 2:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
 bench/ce/jlamp_array.mlw Array f'vc: Timeout or Unknown
-Counter-example model:
+Counter-example model for term at #"bench/ce/jlamp_array.mlw" 22 4 16#
 File jlamp_array.mlw:
   Line 11:
-    two, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "2" } }
+    two  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "2" } }
   Line 14:
-    three, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "3" } }
+    three  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
   Line 22:
     the check fails with all inputs
 
+Model 0:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 1:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 2:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
 bench/ce/jlamp_array.mlw Array f'vc: Timeout or Unknown
-Counter-example model:
+Counter-example model for term at #"bench/ce/jlamp_array.mlw" 21 14 27#
 File jlamp_array.mlw:
   Line 11:
-    two, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "2" } }
+    two  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "2" } }
   Line 14:
-    three, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "3" } }
+    three  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
   Line 21:
-    three, [[@model_trace:three]] = {"proj_name" : "to_int" ,
-    "type" : "Proj" , "value" : {"type" : "Integer" , "val" : "3" } }
+    three [@model_trace:three] =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
 
 bench/ce/jlamp_array.mlw Array g'vc: Valid
+Model 0:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 1:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 2:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
 bench/ce/jlamp_array.mlw Array g'vc: Timeout or Unknown
-Counter-example model:
+Counter-example model for term at #"bench/ce/jlamp_array.mlw" 27 14 27#
 File jlamp_array.mlw:
   Line 11:
-    two, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "2" } }
+    two  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "2" } }
   Line 14:
-    three, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "3" } }
+    three  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
   Line 27:
-    three, [[@model_trace:three]] = {"proj_name" : "to_int" ,
-    "type" : "Proj" , "value" : {"type" : "Integer" , "val" : "3" } }
+    three [@model_trace:three] =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
 
 bench/ce/jlamp_array.mlw Array h'vc: Valid
+Model 0:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 1:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
+Model 2:
+  Concrete RAC:  don't know (ConcreteRAC execution got stuck, 0 warnings)
+    
+  Abstract RAC:  don't know (AbstractRAC execution got stuck, 0 warnings)
+    
 bench/ce/jlamp_array.mlw Array h'vc: Timeout or Unknown
-Counter-example model:
+Counter-example model for term at #"bench/ce/jlamp_array.mlw" 33 14 27#
 File jlamp_array.mlw:
   Line 11:
-    two, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "2" } }
+    two  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "2" } }
   Line 14:
-    three, [] = {"proj_name" : "to_int" , "type" : "Proj" ,
-    "value" : {"type" : "Integer" , "val" : "3" } }
+    three  =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
   Line 33:
-    three, [[@model_trace:three]] = {"proj_name" : "to_int" ,
-    "type" : "Proj" , "value" : {"type" : "Integer" , "val" : "3" } }
+    three [@model_trace:three] =
+      {"proj_name" : "to_int" ,
+      "type" : "Proj" ,
+      "value" : {"type" : "Integer" ,
+      "val" : "3" } }
 
