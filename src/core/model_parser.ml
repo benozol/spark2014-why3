@@ -1099,16 +1099,17 @@ type verdict = Good_model | Bad_model | Dont_know
 type exec_kind = ExecAbstract | ExecConcrete
 
 type log_entry_desc =
-  | Val_from_model of (vsymbol * string)
-  | Exec_call of (Expr.rsymbol option * exec_kind)
+  | Val_from_model of (ident * string)
+  | Exec_call of (Expr.rsymbol option * string Mvs.t  * exec_kind)
   | Exec_pure of (Term.lsymbol * exec_kind)
-  | Exec_stucked of string
-  | Exec_failed of string
+  | Exec_loop of exec_kind
+  | Exec_stucked of (string * string Mvs.t)
+  | Exec_failed of (string * string Mvs.t)
   | Exec_ended
 
 type log_entry = {
     log_desc : log_entry_desc;
-    log_loc  : Loc.position;
+    log_loc  : Loc.position option;
 }
 
 type exec_log = log_entry list
@@ -1118,29 +1119,76 @@ let empty_log = []
 
 let add_log_entry log_desc log_loc exec_log = {log_desc; log_loc} :: exec_log
 
-let add_val_to_log vs v loc exec_log =
-  add_log_entry (Val_from_model (vs,v)) loc exec_log
+let add_val_to_log id v loc exec_log =
+  add_log_entry (Val_from_model (id,v)) loc exec_log
 
-let add_call_to_log rs kind loc exec_log =
-  add_log_entry (Exec_call (rs,kind)) loc exec_log
+let add_call_to_log rs mvs kind loc exec_log =
+  add_log_entry (Exec_call (rs,mvs,kind)) loc exec_log
 
 let add_pure_call_to_log ls kind loc exec_log =
   add_log_entry (Exec_pure (ls,kind)) loc exec_log
 
-let add_failed_to_log s loc exec_log =
-  add_log_entry (Exec_failed s) loc exec_log
+let add_failed_to_log s mvs loc exec_log =
+  add_log_entry (Exec_failed (s,mvs)) loc exec_log
 
-let add_stucked_to_log s loc exec_log =
-  add_log_entry (Exec_stucked s) loc exec_log
+let add_stucked_to_log s mvs loc exec_log =
+  add_log_entry (Exec_stucked (s,mvs)) loc exec_log
 
 let add_exec_ended_to_log loc exec_log =
   add_log_entry Exec_ended loc exec_log
+
+let add_exec_loop_to_log  kind loc exec_log =
+  add_log_entry (Exec_loop kind) loc exec_log
 
 let log_to_list exec_log = List.rev exec_log
 
 let exec_kind_to_string ?(cap=true) = function
   | ExecAbstract -> if cap then "Abstract" else "abstract"
   | ExecConcrete -> if cap then "Concrete" else "concrete"
+
+(** Partition a list of elements into lists of pairs, of consecutive
+    elements with the same value for f *)
+let rec consecutives key ?(sofar=[]) ?current xs =
+  let to_list = function Some (k, xs) -> [Some k, List.rev xs] | None -> [] in
+  match xs with
+  | [] -> List.rev (to_list current @ sofar)
+  | x :: xs -> match key x with
+    | None -> consecutives key ~sofar:((None, [x]) :: to_list current @ sofar) xs
+    | Some k -> match current with
+      | None ->
+          consecutives key ~sofar ~current:(k, [x]) xs
+      | Some (k', xs') when k' = k ->
+          consecutives key ~sofar ~current:(k, x::xs') xs
+      | Some _ ->
+          consecutives key ~sofar:(to_list current @ sofar) ~current:(k, [x]) xs
+
+let print_log_entry_desc fmt e =
+  let print_one fmt (vs,v) =
+    fprintf fmt "@[%a = %s@]" Ident.print_decoded vs.vs_name.id_string v in
+  let print_mvs fmt mvs =
+    fprintf fmt "%a" (Pp.print_list_pre Pp.newline print_one) (Mvs.bindings mvs) in
+  match e.log_desc with
+  | Val_from_model (id, v) ->
+      fprintf fmt "@[<h>%a = %s@]" Ident.print_decoded id.id_string v;
+  | Exec_call (None, mvs, k) ->
+      fprintf fmt "@[<h>%s execution of lambda function@]"
+        (exec_kind_to_string k)
+  | Exec_call (Some rs, mvs, k) ->
+      fprintf fmt "@[<hv2>%s execution of %a with args:%a@]"
+        (exec_kind_to_string k)
+        Ident.print_decoded rs.Expr.rs_name.id_string
+        print_mvs mvs
+  | Exec_pure (ls,k) ->
+      fprintf fmt "@[<h>%s execution of %a@]" (exec_kind_to_string k)
+        Ident.print_decoded ls.ls_name.id_string
+  | Exec_loop k ->
+      fprintf fmt "@[<h>%s execution of loop@]" (exec_kind_to_string k)
+  | Exec_failed (msg,mvs) ->
+     fprintf fmt "@[<hv2>Property failure, %s with:%a@]" msg print_mvs mvs
+  | Exec_stucked (msg,mvs) ->
+     fprintf fmt "@[<hv2>Execution got stuck, %s with:%a@]" msg print_mvs mvs
+  | Exec_ended ->
+      fprintf fmt "@[<h>Execution of main function terminated normally@]"
 
 let print_exec_log ~json fmt entry_log =
   let entry_log = List.rev entry_log in
@@ -1151,12 +1199,13 @@ let print_exec_log ~json fmt entry_log =
       | ExecAbstract -> print_json fmt (string "ABSTRACT")
       | ExecConcrete -> print_json fmt (string "CONCRETE") in
     let print_log_entry fmt = function
-      | Val_from_model (vs, s) ->
+      | Val_from_model (id, s) ->
           fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
             (print_json_field "kind" print_json) (string "VAL_FROM_MODEL")
-            (print_json_field "vs" print_json) (string "%a" Pretty.print_vs vs)
+            (print_json_field "vs" print_json)
+            (string "%a" Ident.print_decoded id.id_string)
             (print_json_field "value" print_json) (String s)
-      | Exec_call (ors, kind) ->
+      | Exec_call (ors, mvs, kind) ->                                     (* TODO print mvs *)
           fprintf fmt "@[@[<hv1>{%a;@ %a;@ %a@]}@]"
             (print_json_field "kind" print_json) (string "EXEC_CALL")
             (print_json_field "rs" print_json) (match ors with Some rs -> string "%a" Ident.print_decoded rs.Expr.rs_name.id_string | None -> Null)
@@ -1166,11 +1215,15 @@ let print_exec_log ~json fmt entry_log =
             (print_json_field "kind" print_json) (string "EXEC_PURE")
             (print_json_field "ls" print_json) (string "%a" Pretty.print_ls ls)
             (print_json_field "kind" print_json_kind) kind
-      | Exec_failed reason ->
+      | Exec_loop kind ->
+          fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
+        (print_json_field "kind" print_json) (string "EXEC_LOOP")
+        (print_json_field "kind" print_json_kind) kind
+      | Exec_failed (reason,_) ->                                        (* TODO print mvs *)
           fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
             (print_json_field "kind" print_json) (string "FAILED")
             (print_json_field "reason" print_json) (String reason)
-      | Exec_stucked reason ->
+      | Exec_stucked (reason,_) ->                                        (* TODO print mvs *)
           fprintf fmt "@[@[<hv1>{%a;@ %a@]}@]"
             (print_json_field "kind" print_json) (string "STUCKED")
             (print_json_field "reason" print_json) (String reason)
@@ -1179,47 +1232,25 @@ let print_exec_log ~json fmt entry_log =
             (print_json_field "kind" print_json) (string "ENDED") in
     let print_json_entry fmt e =
       fprintf fmt "@[@[<hv1>{@[<hv2>%a@];@ @[<hv2>%a@]@]}@]"
-        (print_json_field "loc" Pretty.print_json_loc) e.log_loc
+        (Pp.print_option_or_default "NOLOC"
+           (print_json_field "loc" Pretty.print_json_loc)) e.log_loc
         (print_json_field "entry" print_log_entry) e.log_desc in
     fprintf fmt "@[@[<hv1>[%a@]@]"
       Pp.(print_list comma print_json_entry) entry_log
   else
-    let rec loop file line fmt = function
-      | [] -> fprintf fmt "@]@]"
-      | { log_desc; log_loc } :: rest ->
-          let f, l, _, _ = Loc.get log_loc in
-          if file <> f then (
-            if file <> "" then
-              fprintf fmt "@]@]@\n";
-            fprintf fmt "@[<v2>File %s:@\n" (Filename.basename f) );
-          if line <> l then (
-            if line <> -1 && (file = f || file = "") then
-              fprintf fmt "@]@\n";
-            fprintf fmt "@[<v2>Line %d:@\n" l )
-          else
-            fprintf fmt "@\n";
-          begin match log_desc with
-            | Val_from_model (vs, v) ->
-                fprintf fmt "%a = %s" Ident.print_decoded vs.vs_name.id_string v;
-            | Exec_call (None, k) ->
-                fprintf fmt "%s execution of lambda function"
-                  (exec_kind_to_string k)
-            | Exec_call (Some rs, k) ->
-                fprintf fmt "%s execution of %a" (exec_kind_to_string k)
-                  Ident.print_decoded rs.Expr.rs_name.id_string
-            | Exec_pure (ls,k) ->
-                fprintf fmt "%s execution of %a" (exec_kind_to_string k)
-                  Ident.print_decoded ls.ls_name.id_string
-            | Exec_failed msg ->
-                fprintf fmt "Property failure: %s" msg
-            | Exec_stucked msg ->
-                fprintf fmt "Execution got stucked: %s" msg
-            | Exec_ended ->
-                fprintf fmt "Execution of main function terminated normally"
-          end;
-          loop f l fmt rest in
-    if entry_log <> [] then
-      fprintf fmt "@[<v>%a@]@]" (loop "" (-1)) entry_log
+    let entry_log =
+      let on_file e = Opt.map (fun (f,_,_,_) -> f) (Opt.map Loc.get e.log_loc) in
+      let on_line e = Opt.map (fun (_,l,_,_) -> l) (Opt.map Loc.get e.log_loc) in
+      List.map (fun (f, es) -> f, consecutives on_line es)
+        (consecutives on_file entry_log) in
+    let pp_entries = Pp.(print_list newline print_log_entry_desc) in
+    let pp_lines fmt (opt_line, entries) = match opt_line with
+      | Some line -> fprintf fmt "@[<v2>Line %d:@\n%a@]" line pp_entries entries
+      | None -> pp_entries fmt entries in
+    let pp_files fmt (opt_file, l) = match opt_file with
+      | Some file -> fprintf fmt "@[<v2>File %s:@\n%a@]" (Filename.basename file) Pp.(print_list newline pp_lines) l
+      | None -> fprintf fmt "@[<v4>Unknown location:@\n%a@]" Pp.(print_list newline pp_lines) l in
+    Pp.(print_list newline pp_files) fmt entry_log
 
 type full_verdict = {
     verdict  : verdict;

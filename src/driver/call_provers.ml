@@ -324,12 +324,12 @@ let select_model check_model models =
          (List.filter not_empty
             (List.mapi (fun i (r,m) -> i,r,m)
                models))) in
-  Debug.dprintf debug_check_ce "@[<v>Models:@ %a@]@."
+  Debug.dprintf debug_check_ce "Models:@\n%a@."
     Pp.(print_list space (fun fmt (i,_,_,mr,s) ->
         match mr with
         | Cannot_check_model {reason} -> fprintf fmt "- Couldn't check model: %s" reason
         | Check_model_result r ->
-            fprintf fmt "- Checked model %d: %a/%a -> @[%a@]" i
+            fprintf fmt "- @[<v2>Checked model %d: %a/%a ->@ @[%a@]@]" i
               print_verdict r.concrete.verdict
               print_verdict r.abstract.verdict
               (print_ce_summary_title ?check_ce:None) s)) models;

@@ -260,39 +260,50 @@ val interleave_with_source :
 
 (** Result when checking a CE model *)
 
+open Term
+
 type verdict = Good_model | Bad_model | Dont_know
 
 type exec_kind = ExecAbstract | ExecConcrete
 
 type log_entry_desc =
-  | Val_from_model of (Term.vsymbol * string)
+  | Val_from_model of (Ident.ident * string)
   (** values taken from model during interpretation *)
-  | Exec_call of (Expr.rsymbol option * exec_kind)
-  (** executed function call, lambda if no rsymbol *)
-  | Exec_pure of (Term.lsymbol * exec_kind)
+  | Exec_call of (Expr.rsymbol option * string Mvs.t  * exec_kind)
+  (** executed function call or lambda if no rsymbol,
+      arguments, execution type*)
+  | Exec_pure of (lsymbol * exec_kind)
   (** executed pure function call *)
-  | Exec_stucked of string
+  | Exec_loop of exec_kind
+  (** execute loop *)
+  | Exec_stucked of (string * string Mvs.t)
   (** stucked execution information *)
-  | Exec_failed of string
+  | Exec_failed of (string * string Mvs.t)
   (** failed execution information *)
   | Exec_ended
   (** execution terminated normally *)
 
 type log_entry = {
     log_desc : log_entry_desc;
-    log_loc  : Loc.position;
+    log_loc  : Loc.position option;
 }
 
 type exec_log
 
 val empty_log : exec_log
-val add_log_entry : log_entry_desc -> Loc.position -> exec_log -> exec_log
-val add_val_to_log : Term.vsymbol -> string -> Loc.position -> exec_log -> exec_log
-val add_call_to_log : Expr.rsymbol option -> exec_kind -> Loc.position -> exec_log -> exec_log
-val add_pure_call_to_log : Term.lsymbol -> exec_kind -> Loc.position -> exec_log -> exec_log
-val add_failed_to_log : string -> Loc.position -> exec_log -> exec_log
-val add_stucked_to_log : string -> Loc.position -> exec_log -> exec_log
-val add_exec_ended_to_log : Loc.position -> exec_log -> exec_log
+val add_log_entry : log_entry_desc -> Loc.position option -> exec_log -> exec_log
+val add_val_to_log :
+  Ident.ident -> string -> Loc.position option -> exec_log -> exec_log
+val add_call_to_log :
+  Expr.rsymbol option -> string Mvs.t -> exec_kind -> Loc.position option -> exec_log -> exec_log
+val add_pure_call_to_log :
+  lsymbol -> exec_kind -> Loc.position option -> exec_log -> exec_log
+val add_failed_to_log :
+  string -> string Mvs.t -> Loc.position option -> exec_log -> exec_log
+val add_stucked_to_log :
+  string -> string Mvs.t -> Loc.position option -> exec_log -> exec_log
+val add_exec_ended_to_log : Loc.position option -> exec_log -> exec_log
+val add_exec_loop_to_log : exec_kind -> Loc.position option -> exec_log -> exec_log
 val log_to_list : exec_log -> log_entry list
 val print_exec_log : json:bool -> exec_log Pp.pp
 
