@@ -795,7 +795,11 @@ let get_model_value model name loc =
     (List.find_opt aux (get_model_elements model))
 
 let model_value model id =
-  Opt.bind id.id_loc (get_model_value model id.id_string)
+  match id.id_loc with
+  | None -> None
+  | Some loc ->
+      let name = Ident.get_model_trace_string ~name:id.id_string ~attrs:id.id_attrs in
+      get_model_value model name loc
 
 exception CannotImportModelValue of string
 
