@@ -1493,14 +1493,17 @@ and eval_expr' env e =
         let cl = Spv.fold add_free ce.c_cty.cty_effect.eff_reads Mvs.empty in
         let mvs = Mvs.map (asprintf "%a" print_value) cl in
         register_call env e.e_loc None mvs ExecConcrete;
-        let arg =
-          match ce.c_cty.cty_args with [arg] -> arg | _ -> assert false in
-        let match_free pv mt =
-          let v = Mvs.find pv.pv_vs env.vsenv in
-          ty_match mt pv.pv_vs.vs_ty v.v_ty in
-        let mt = Spv.fold match_free cty.cty_effect.eff_reads Mtv.empty in
-        let ty = ty_inst mt (ty_of_ity e.e_ity) in
-        Normal (value ty (Vfun (cl, arg.pv_vs, e')))
+        ( match ce.c_cty.cty_args with
+          | [] ->
+              eval_expr env e'
+          | [arg] ->
+              let match_free pv mt =
+                let v = Mvs.find pv.pv_vs env.vsenv in
+                ty_match mt pv.pv_vs.vs_ty v.v_ty in
+              let mt = Spv.fold match_free cty.cty_effect.eff_reads Mtv.empty in
+              let ty = ty_inst mt (ty_of_ity e.e_ity) in
+              Normal (value ty (Vfun (cl, arg.pv_vs, e')))
+          | _ -> failwith "many args for exec fun" )
       | Cany ->
           let v =
             try match get_model_value_by_loc env.rac.ce_model (Opt.get_exn Exit e.e_loc) with
@@ -1882,8 +1885,7 @@ and exec_call ?(main_function=false) ?loc env rs arg_pvs ity_result =
           | _ -> assert false
         else
           match find_definition env rs with
-          | LocalFunction (locals, ce) ->
-             begin
+          | LocalFunction (locals, ce) -> (
                let env = add_local_funs locals env in
                match ce.c_node with
                | Capp (rs', pvl) ->
@@ -1900,7 +1902,7 @@ and exec_call ?(main_function=false) ?loc env rs arg_pvs ity_result =
                     pp_indent print_rs rs;
                   cannot_compute "Cannot compute application of local any-function %a"
                     print_rs rs
-               | Cpur _ -> assert false (* TODO ? *) end
+               | Cpur _ -> assert false (* TODO ? *) )
           | Builtin f ->
              Debug.dprintf debug "@[<hv2>%tEXEC CALL %a: BUILTIN@]@." pp_indent print_rs rs;
              Normal (f rs arg_vs)
