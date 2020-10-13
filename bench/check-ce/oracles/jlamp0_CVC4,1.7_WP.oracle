@@ -2,20 +2,20 @@
 <check-ce>Model 0:
             - Concrete: bad model (Concrete RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
                     b = (ref'mk 0)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
@@ -25,10 +25,10 @@
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -59,10 +59,10 @@
                     a = (ref'mk 3)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -78,10 +78,10 @@
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -112,10 +112,10 @@
                     a = (ref'mk 3)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -127,29 +127,24 @@
                     r = (ref'mk 3)
                     result = 0
 <check-ce>Models:
-          - Checked model 0: bad model/bad model -> Sorry, we don't have a
-                                                    good counterexample for
-                                                    you :(
-          - Checked model 1: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 2: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
+- Checked model 0 (Concrete: bad model, Abstract: bad model)
+    Summary: Sorry, we don't have a good counterexample for you :(
+- Selected model 1 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 12, characters 13-26:
-Formula `Assertion' from verification condition p1'vc.
-Prover result is: unknown (unknown + incomplete) (0.08s, 6821 steps).
+Goal `Assertion' from verification condition p1'vc.
+Prover result is: unknown (unknown + incomplete) (0.07s, 6821 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 8:
+  Line 6:
     a = (ref'mk 0)
+  Line 8:
     b = (ref'mk 3)
-    c = (ref'mk 0)
     Concrete execution of p1 with args:
       b = (ref'mk 3)
   Line 11:
@@ -183,20 +178,20 @@ File jlamp0.mlw:
 <check-ce>Model 0:
             - Concrete: bad model (Concrete RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
                     b = (ref'mk 0)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
@@ -206,10 +201,10 @@ File jlamp0.mlw:
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 7)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -275,10 +270,10 @@ File jlamp0.mlw:
                     a = (ref'mk 9)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 7)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -294,10 +289,10 @@ File jlamp0.mlw:
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 7)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -363,10 +358,10 @@ File jlamp0.mlw:
                     a = (ref'mk 9)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 7)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -378,29 +373,24 @@ File jlamp0.mlw:
                     r = (ref'mk 3)
                     result = 0
 <check-ce>Models:
-          - Checked model 0: bad model/bad model -> Sorry, we don't have a
-                                                    good counterexample for
-                                                    you :(
-          - Checked model 1: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 2: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
+- Checked model 0 (Concrete: bad model, Abstract: bad model)
+    Summary: Sorry, we don't have a good counterexample for you :(
+- Selected model 1 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 10, characters 15-29:
-Formula `Postcondition' from verification condition p1'vc.
+Goal `Postcondition' from verification condition p1'vc.
 Prover result is: unknown (unknown + incomplete) (0.05s, 7064 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 8:
+  Line 6:
     a = (ref'mk 7)
+  Line 8:
     b = (ref'mk 3)
-    c = (ref'mk 0)
     Concrete execution of p1 with args:
       b = (ref'mk 3)
   Line 11:
@@ -469,20 +459,20 @@ File jlamp0.mlw:
 <check-ce>Model 0:
             - Concrete: bad model (Concrete RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
                     b = (ref'mk 0)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "bench/check-ce/jlamp0.mlw", line 9, characters 15-45)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 0)
+                Line 8:
                   b = (ref'mk 0)
-                  c = (ref'mk 0)
                 Line 9:
                   Execution got stuck, Precondition of p1 with:
                     a = (ref'mk 0)
@@ -492,10 +482,10 @@ File jlamp0.mlw:
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 2)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -539,10 +529,10 @@ File jlamp0.mlw:
                     a = (ref'mk 5)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 2)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -558,10 +548,10 @@ File jlamp0.mlw:
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 2)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -605,10 +595,10 @@ File jlamp0.mlw:
                     a = (ref'mk 5)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after )
               File jlamp0.mlw:
-                Line 8:
+                Line 6:
                   a = (ref'mk 2)
+                Line 8:
                   b = (ref'mk 3)
-                  c = (ref'mk 0)
                   Concrete execution of p1 with args:
                     b = (ref'mk 3)
                 Line 11:
@@ -620,29 +610,24 @@ File jlamp0.mlw:
                     r = (ref'mk 3)
                     result = 0
 <check-ce>Models:
-          - Checked model 0: bad model/bad model -> Sorry, we don't have a
-                                                    good counterexample for
-                                                    you :(
-          - Checked model 1: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 2: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
+- Checked model 0 (Concrete: bad model, Abstract: bad model)
+    Summary: Sorry, we don't have a good counterexample for you :(
+- Selected model 1 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 10, characters 15-29:
-Formula `Postcondition' from verification condition p1'vc.
-Prover result is: unknown (unknown + incomplete) (0.05s, 6963 steps).
+Goal `Postcondition' from verification condition p1'vc.
+Prover result is: unknown (unknown + incomplete) (0.06s, 6963 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 8:
+  Line 6:
     a = (ref'mk 2)
+  Line 8:
     b = (ref'mk 3)
-    c = (ref'mk 0)
     Concrete execution of p1 with args:
       b = (ref'mk 3)
   Line 11:
@@ -686,14 +671,16 @@ File jlamp0.mlw:
       a = (ref'mk 5)
 
 <check-ce>Check model 0 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                      VALUE from ce-model: (ref'mk 0)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 0:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -708,9 +695,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "WHY3DATA/stdlib/ref.mlw", line 20, characters 39-44)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -726,14 +715,16 @@ File jlamp0.mlw:
                     r = (ref'mk 0)
                     v = 1
 <check-ce>Check model 1 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                        VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -748,9 +739,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -766,14 +759,16 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Check model 2 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                          VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -788,9 +783,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -806,30 +803,26 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Models:
-          - Checked model 0: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 1: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
-          - Checked model 2: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
+- Selected model 0 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 1 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 22, characters 18-31:
-Formula `Loop invariant init' from verification condition p2'vc.
-Prover result is: unknown (unknown + incomplete) (0.05s, 6612 steps).
+Goal `Loop invariant init' from verification condition p2'vc.
+Prover result is: unknown (unknown + incomplete) (0.04s, 6612 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 17:
+  Line 6:
     a = (ref'mk 0)
-    c = (ref'mk 0)
+  Line 15:
+    ANY = (ref'mk 0)
+  Line 17:
     _ = ()
     Concrete execution of p2 with args:
       _ = ()
@@ -844,18 +837,20 @@ File jlamp0.mlw:
       c = (ref'mk 1)
 
 File "bench/check-ce/jlamp0.mlw", line 23, characters 18-31:
-Formula `Loop invariant init' from verification condition p2'vc.
+Goal `Loop invariant init' from verification condition p2'vc.
 Prover result is: valid (0.03s, 1612 steps).
 
 <check-ce>Check model 0 ("bench/check-ce/jlamp0.mlw", line 24, characters 16-18)
-<check-ce>                      VALUE from ce-model: (ref'mk 0)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 0:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -870,9 +865,11 @@ Prover result is: valid (0.03s, 1612 steps).
                     c = (ref'mk 1)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "WHY3DATA/stdlib/ref.mlw", line 20, characters 39-44)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -888,14 +885,16 @@ Prover result is: valid (0.03s, 1612 steps).
                     r = (ref'mk 0)
                     v = 1
 <check-ce>Check model 1 ("bench/check-ce/jlamp0.mlw", line 24, characters 16-18)
-<check-ce>                        VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -910,9 +909,11 @@ Prover result is: valid (0.03s, 1612 steps).
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -928,14 +929,16 @@ Prover result is: valid (0.03s, 1612 steps).
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Check model 2 ("bench/check-ce/jlamp0.mlw", line 24, characters 16-18)
-<check-ce>                          VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -950,9 +953,11 @@ Prover result is: valid (0.03s, 1612 steps).
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -968,30 +973,26 @@ Prover result is: valid (0.03s, 1612 steps).
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Models:
-          - Checked model 0: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 1: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
-          - Checked model 2: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
+- Selected model 0 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 1 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 24, characters 16-18:
-Formula `Loop variant decrease' from verification condition p2'vc.
-Prover result is: unknown (unknown + incomplete) (0.06s, 7208 steps).
+Goal `Loop variant decrease' from verification condition p2'vc.
+Prover result is: unknown (unknown + incomplete) (0.07s, 7208 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 17:
+  Line 6:
     a = (ref'mk 0)
-    c = (ref'mk 0)
+  Line 15:
+    ANY = (ref'mk 0)
+  Line 17:
     _ = ()
     Concrete execution of p2 with args:
       _ = ()
@@ -1006,14 +1007,16 @@ File jlamp0.mlw:
       c = (ref'mk 1)
 
 <check-ce>Check model 0 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                      VALUE from ce-model: (ref'mk 0)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 0:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1028,9 +1031,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "WHY3DATA/stdlib/ref.mlw", line 20, characters 39-44)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1046,14 +1051,16 @@ File jlamp0.mlw:
                     r = (ref'mk 0)
                     v = 1
 <check-ce>Check model 1 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                        VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1068,9 +1075,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1086,14 +1095,16 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Check model 2 ("bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
-<check-ce>                          VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1108,9 +1119,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1126,30 +1139,26 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Models:
-          - Checked model 0: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 1: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
-          - Checked model 2: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
+- Selected model 0 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 1 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 22, characters 18-31:
-Formula `Loop invariant preservation' from verification condition p2'vc.
-Prover result is: unknown (unknown + incomplete) (0.06s, 7157 steps).
+Goal `Loop invariant preservation' from verification condition p2'vc.
+Prover result is: unknown (unknown + incomplete) (0.05s, 7157 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 17:
+  Line 6:
     a = (ref'mk 0)
-    c = (ref'mk 0)
+  Line 15:
+    ANY = (ref'mk 0)
+  Line 17:
     _ = ()
     Concrete execution of p2 with args:
       _ = ()
@@ -1164,14 +1173,16 @@ File jlamp0.mlw:
       c = (ref'mk 1)
 
 <check-ce>Check model 0 ("bench/check-ce/jlamp0.mlw", line 23, characters 18-31)
-<check-ce>                      VALUE from ce-model: (ref'mk 0)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 0:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1186,9 +1197,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "WHY3DATA/stdlib/ref.mlw", line 20, characters 39-44)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1204,14 +1217,16 @@ File jlamp0.mlw:
                     r = (ref'mk 0)
                     v = 1
 <check-ce>Check model 1 ("bench/check-ce/jlamp0.mlw", line 23, characters 18-31)
-<check-ce>                        VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1226,9 +1241,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1244,14 +1261,16 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Check model 2 ("bench/check-ce/jlamp0.mlw", line 23, characters 18-31)
-<check-ce>                          VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1266,9 +1285,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1284,30 +1305,26 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Models:
-          - Checked model 0: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 1: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
-          - Checked model 2: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
+- Selected model 0 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 1 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 23, characters 18-31:
-Formula `Loop invariant preservation' from verification condition p2'vc.
-Prover result is: unknown (unknown + incomplete) (0.06s, 7230 steps).
+Goal `Loop invariant preservation' from verification condition p2'vc.
+Prover result is: unknown (unknown + incomplete) (0.05s, 7230 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 17:
+  Line 6:
     a = (ref'mk 0)
-    c = (ref'mk 0)
+  Line 15:
+    ANY = (ref'mk 0)
+  Line 17:
     _ = ()
     Concrete execution of p2 with args:
       _ = ()
@@ -1322,14 +1339,16 @@ File jlamp0.mlw:
       c = (ref'mk 1)
 
 <check-ce>Check model 0 ("bench/check-ce/jlamp0.mlw", line 19, characters 15-28)
-<check-ce>                      VALUE from ce-model: (ref'mk 0)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 0:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1344,9 +1363,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "WHY3DATA/stdlib/ref.mlw", line 20, characters 39-44)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1362,14 +1383,16 @@ File jlamp0.mlw:
                     r = (ref'mk 0)
                     v = 1
 <check-ce>Check model 1 ("bench/check-ce/jlamp0.mlw", line 19, characters 15-28)
-<check-ce>                        VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 1:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1384,9 +1407,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1402,14 +1427,16 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Check model 2 ("bench/check-ce/jlamp0.mlw", line 19, characters 15-28)
-<check-ce>                          VALUE from ce-model: (ref'mk 1)
+<check-ce>VALUE from ce-model for c at "bench/check-ce/jlamp0.mlw", line 20, characters 4-10: (ref'mk 1)
 <check-ce>VALUE for result "bench/check-ce/jlamp0.mlw", line 20, characters 4-10 not in ce-model, taking default ()
 <check-ce>Model 2:
             - Concrete: good model (Concrete RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1424,9 +1451,11 @@ File jlamp0.mlw:
                     c = (ref'mk 1)
             - Abstract: good model (Abstract RAC found a contradiction at different location "bench/check-ce/jlamp0.mlw", line 22, characters 18-31)
               File jlamp0.mlw:
-                Line 17:
+                Line 6:
                   a = (ref'mk 0)
-                  c = (ref'mk 0)
+                Line 15:
+                  ANY = (ref'mk 0)
+                Line 17:
                   _ = ()
                   Concrete execution of p2 with args:
                     _ = ()
@@ -1442,30 +1471,26 @@ File jlamp0.mlw:
                   Property failure, Loop invariant initialization with:
                     c = (ref'mk 1)
 <check-ce>Models:
-          - Checked model 0: good model/bad model -> The program does not
-                                                     comply to the
-                                                     verification goal, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 1: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
-          - Checked model 2: good model/good model -> The program does not
-                                                      comply to the
-                                                      verification goal, for
-                                                      example during the
-                                                      following execution:
+- Selected model 0 (Concrete: good model, Abstract: bad model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 1 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
+- Checked model 2 (Concrete: good model, Abstract: good model)
+    Summary: The program does not comply to the verification goal, for
+    example during the following execution:
 File "bench/check-ce/jlamp0.mlw", line 19, characters 15-28:
-Formula `Postcondition' from verification condition p2'vc.
+Goal `Postcondition' from verification condition p2'vc.
 Prover result is: unknown (unknown + incomplete) (0.05s, 6936 steps).
 The program does not comply to the verification goal, for example during the
 following execution:
 File jlamp0.mlw:
-  Line 17:
+  Line 6:
     a = (ref'mk 0)
-    c = (ref'mk 0)
+  Line 15:
+    ANY = (ref'mk 0)
+  Line 17:
     _ = ()
     Concrete execution of p2 with args:
       _ = ()

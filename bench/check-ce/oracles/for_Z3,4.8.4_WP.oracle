@@ -1,6 +1,6 @@
 File "bench/check-ce/for.mlw", line 8, characters 25-31:
-Formula `Loop invariant init' from verification condition f'vc.
-Prover result is: valid (0.01s, 58 steps).
+Goal `Loop invariant init' from verification condition f'vc.
+Prover result is: valid (0.03s, 58 steps).
 
 <check-ce>Check model 0 ("bench/check-ce/for.mlw", line 8, characters 25-31)
 <check-ce>VALUE for result "bench/check-ce/for.mlw", line 5, characters 15-16 not in ce-model, taking default (ref'mk 0)
@@ -75,9 +75,9 @@ Prover result is: valid (0.01s, 58 steps).
 <check-ce>Check model 1 ("bench/check-ce/for.mlw", line 8, characters 25-31)
 <check-ce>VALUE for result "bench/check-ce/for.mlw", line 5, characters 15-16 not in ce-model, taking default (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/for.mlw", line 6, characters 15-16 not in ce-model, taking default (ref'mk 0)
-<check-ce>                          VALUE from ce-model: (ref'mk (-401))
+<check-ce>VALUE from ce-model for x1 at "bench/check-ce/for.mlw", line 7, characters 2-125: (ref'mk (-401))
 <check-ce>VALUE for x2 "bench/check-ce/for.mlw", line 7, characters 2-125 not in ce-model, taking default (ref'mk 0)
-<check-ce>                      VALUE from ce-model: 0
+<check-ce>VALUE from ce-model for i at "bench/check-ce/for.mlw", line 7, characters 6-7: 0
 <check-ce>Model 1:
             - Concrete: bad model (Concrete RAC does not confirm the counter-example, no contradiction during execution)
               File for.mlw:
@@ -155,9 +155,9 @@ Prover result is: valid (0.01s, 58 steps).
 <check-ce>Check model 2 ("bench/check-ce/for.mlw", line 8, characters 25-31)
 <check-ce>VALUE for result "bench/check-ce/for.mlw", line 5, characters 15-16 not in ce-model, taking default (ref'mk 0)
 <check-ce>VALUE for result "bench/check-ce/for.mlw", line 6, characters 15-16 not in ce-model, taking default (ref'mk 0)
-<check-ce>                            VALUE from ce-model: (ref'mk (-7869))
+<check-ce>VALUE from ce-model for x1 at "bench/check-ce/for.mlw", line 7, characters 2-125: (ref'mk (-7869))
 <check-ce>VALUE for x2 "bench/check-ce/for.mlw", line 7, characters 2-125 not in ce-model, taking default (ref'mk 0)
-<check-ce>                        VALUE from ce-model: 0
+<check-ce>VALUE from ce-model for i at "bench/check-ce/for.mlw", line 7, characters 6-7: 0
 <check-ce>Model 2:
             - Concrete: bad model (Concrete RAC does not confirm the counter-example, no contradiction during execution)
               File for.mlw:
@@ -233,22 +233,17 @@ Prover result is: valid (0.01s, 58 steps).
                     x1 = (ref'mk (-7868))
                     i = 1
 <check-ce>Models:
-          - Checked model 0: bad model/bad model -> Sorry, we don't have a
-                                                    good counterexample for
-                                                    you :(
-          - Checked model 1: bad model/good model -> The contracts of some
-                                                     function or loop are
-                                                     underspecified, for
-                                                     example during the
-                                                     following execution:
-          - Checked model 2: bad model/good model -> The contracts of some
-                                                     function or loop are
-                                                     underspecified, for
-                                                     example during the
-                                                     following execution:
+- Checked model 0 (Concrete: bad model, Abstract: bad model)
+    Summary: Sorry, we don't have a good counterexample for you :(
+- Selected model 1 (Concrete: bad model, Abstract: good model)
+    Summary: The contracts of some function or loop are underspecified, for
+    example during the following execution:
+- Checked model 2 (Concrete: bad model, Abstract: good model)
+    Summary: The contracts of some function or loop are underspecified, for
+    example during the following execution:
 File "bench/check-ce/for.mlw", line 8, characters 25-31:
-Formula `Loop invariant preservation' from verification condition f'vc.
-Prover result is: timeout (1.00s, 4917885 steps).
+Goal `Loop invariant preservation' from verification condition f'vc.
+Prover result is: timeout (1.00s, 6132684 steps).
 The contracts of some function or loop are underspecified, for example during
 the following execution:
 File for.mlw:
@@ -285,6 +280,6 @@ File for.mlw:
       i = 1
 
 File "bench/check-ce/for.mlw", line 8, characters 25-31:
-Formula `Loop invariant preservation' from verification condition f'vc.
+Goal `Loop invariant preservation' from verification condition f'vc.
 Prover result is: valid (0.00s, 2384 steps).
 
