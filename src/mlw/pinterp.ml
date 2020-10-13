@@ -938,9 +938,15 @@ let find_global_definition kn rs =
   | Pdecl.PDexn _ -> raise Not_found
   | Pdecl.PDpure -> raise Not_found
 
+let range_check_builtin _ lvs = match lvs with
+  | [v] -> v
+  | _ -> failwith "range_check_"
+
 let find_definition env (rs: rsymbol) =
+  if rs.rs_name.id_string = "range_check_" then
+    Builtin range_check_builtin
   (* then try if it is a built-in symbol *)
-  match Hrs.find builtin_progs rs with
+  else match Hrs.find builtin_progs rs with
   | f -> Builtin f
   | exception Not_found ->
       (* then try if it is a local function *)
