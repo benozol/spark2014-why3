@@ -230,6 +230,11 @@ let save_session_and_exit c signum =
 
 let _ =
   if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
+  List.iter Debug.(fun s -> set_flag (lookup_flag s))
+    ["check-ce"; "rac"; "trace_exec"];
+  let out = open_out_gen [Open_creat; Open_append; Open_text] 0o600 "/tmp/gnat.log" in
+  let fmt = Format.formatter_of_out_channel out in
+  Debug.set_debug_formatter fmt;
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
@@ -257,8 +262,15 @@ let _ =
         ()
     end;
     Gnat_scheduler.main_loop (ending c);
-  with e when Debug.test_flag Debug.stack_trace -> raise e
-  | Out_of_memory as e -> raise e
+  with
+  (*   e when Debug.test_flag Debug.stack_trace -> raise e
+   * | Out_of_memory as e -> raise e *)
   | e ->
+      (* Format.fprintf fmt "%a@." Exn_printer.exn_printer e; *)
+      let out = open_out "/tmp/backtrace" in
+      (* Warning.emit "%a@." Exn_printer.exn_printer e; *)
+      Printexc.print_backtrace out;
       let s = Pp.sprintf "%a.@." Exn_printer.exn_printer e in
+      output_string out s; output_char out '\n';
+      close_out out;
       Gnat_util.abort_with_message ~internal:true s
