@@ -7,7 +7,7 @@
             - Abstract: bad model (Abstract RAC, with the counterexample model cannot continue after "bench/check-ce/func_call4.mlw", line 7, characters 12-21)
               File func_call4.mlw:
                 Line 3:
-                  ANY = 0
+                  execution of any, result: 0
                   Concrete execution of ref with args:
                     contents = 0
                   Concrete execution of ref'mk with args:
@@ -34,7 +34,7 @@
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File func_call4.mlw:
                 Line 3:
-                  ANY = 0
+                  execution of any, result: 0
                   Concrete execution of ref with args:
                     contents = 0
                   Concrete execution of ref'mk with args:
@@ -59,7 +59,7 @@
             - Abstract: good model (Abstract RAC confirms the counter-example)
               File func_call4.mlw:
                 Line 3:
-                  ANY = 0
+                  execution of any, result: 0
                   Concrete execution of ref with args:
                     contents = 0
                   Concrete execution of ref'mk with args:
@@ -78,23 +78,21 @@
 <check-ce>Models:
 - Checked model 0 (Concrete: don't know, Abstract: bad model)
     Summary: The following counterexample model has not been verified
-    (RAC execution got stuck: Cannot compute application of local any-function g):
+    (RAC execution got stuck: Cannot compute application of local any-function g)
 - Selected model 1 (Concrete: don't know, Abstract: good model)
     Summary: The program does not comply to the verification goal, orthe
-    contracts of some loop or function are too weak, for example in the
-    following execution:
+    contracts of some loop or function are too weak
 - Checked model 2 (Concrete: don't know, Abstract: good model)
     Summary: The program does not comply to the verification goal, orthe
-    contracts of some loop or function are too weak, for example in the
-    following execution:
+    contracts of some loop or function are too weak
 File "bench/check-ce/func_call4.mlw", line 9, characters 34-39:
-Goal `Assertion' from verification condition f'vc.
-Prover result is: timeout (1.00s, 4177575 steps).
+Goal Assertion from verification condition f'vc.
+Prover result is: timeout (1.00s, 7654094 steps).
 The program does not comply to the verification goal, orthe contracts of some
-loop or function are too weak, for example in the following execution:
+loop or function are too weak, for example during the following execution:
 File func_call4.mlw:
   Line 3:
-    ANY = 0
+    execution of any, result: 0
     Concrete execution of ref with args:
       contents = 0
     Concrete execution of ref'mk with args:
