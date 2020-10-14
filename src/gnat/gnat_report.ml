@@ -100,13 +100,13 @@ let print_cntexmp_model fmt = function
   | Some (m, s) ->
     let m = Model_parser.spark_filter_model m in
     if not (Model_parser.is_model_empty m) then begin
-      Format.fprintf fmt ", ";
-      print_json_field "cntexmp"
-        (Model_parser.print_model_json
-           ~me_name_trans:spark_counterexample_transform
-           ~vc_line_trans:(fun _ -> "vc_line"))
-        fmt
-        m
+      Format.fprintf fmt ", %a, %a"
+        (print_json_field "cntexmp"
+           (Model_parser.print_model_json
+              ~me_name_trans:spark_counterexample_transform
+              ~vc_line_trans:(fun _ -> "vc_line"))) m
+        (print_json_field "cntexmp_summary" Json_base.string)
+        (Pp.sprintf "@[<h>%a@]" (Call_provers.print_ce_summary_title ?check_ce:None) s)
     end
 
 let print_manual_proof_info fmt info =
