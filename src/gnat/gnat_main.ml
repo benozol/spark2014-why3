@@ -169,9 +169,8 @@ let report_messages c obj =
                          Call_provers.StepLimitExceeded}} ->
             (* Resource limit was hit, the model is not useful *)
             None
-        | Some { Session_itp.proof_state =
-                  Some ({Call_provers.pr_answer = _} as r)} ->
-          Some r.Call_provers.pr_model
+        | Some { Session_itp.proof_state = Some res } ->
+            res.Call_provers.pr_model
         | _ -> None
       in
       let manual_info =

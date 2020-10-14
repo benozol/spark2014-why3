@@ -105,7 +105,7 @@ type result_info =
      The second integer is the number of subgoals proven by trivial_true. *)
   | Not_Proved of
        Task.task option *              (* task of the last goal *)
-       Model_parser.model option *     (* counterexample model *)
+       (Model_parser.model * Call_provers.ce_summary) option *     (* counterexample model *)
        (string * string) option        (* for manual provers,
                                           pair of (vc_file, editor_cmd) *)
 

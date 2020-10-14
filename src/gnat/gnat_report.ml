@@ -14,7 +14,7 @@ type result_info =
   | Proved of stats * int * int
   | Not_Proved of
        Task.task option *
-       Model_parser.model option *
+       (Model_parser.model * Call_provers.ce_summary) option *
        (string * string) option
 
 type msg =
@@ -24,7 +24,7 @@ type msg =
     stats_trivial : int;
     check_tree    : Json_base.json;
     extra_info    : int option;
-    cntexmp_model : Model_parser.model option;
+    cntexmp_model : (Model_parser.model * Call_provers.ce_summary) option;
     manual_proof  : (string * string) option
   }
 
@@ -95,10 +95,9 @@ let spark_counterexample_transform me_name =
      See Flow_Error_Messages.Error_Msg_Proof.Do_Pretty_Cntexmp*)
   me_name.Model_parser.men_name
 
-let print_cntexmp_model fmt model =
-  match model with
+let print_cntexmp_model fmt = function
   | None -> ()
-  | Some m ->
+  | Some (m, s) ->
     let m = Model_parser.spark_filter_model m in
     if not (Model_parser.is_model_empty m) then begin
       Format.fprintf fmt ", ";
