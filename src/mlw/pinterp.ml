@@ -52,6 +52,16 @@ let is_prog_constant d =
   | PDlet (LDsym (_, {c_cty= {Ity.cty_args= []}})) -> true
   | _ -> false
 
+let ity_components ity = match ity.ity_node with
+  | Ityapp (ts, l1, l2)
+  | Ityreg {reg_its= ts; reg_args= l1; reg_regs= l2} ->
+      ts, l1, l2
+  | _ -> failwith "ity_components"
+
+let is_range_ty ty =
+  let its, _, _ = ity_components (ity_of_ty ty) in
+  is_range_type_def its.its_def
+
 (* EXCEPTIONS *)
 
 exception NoMatch
@@ -249,87 +259,6 @@ let ls_undefined =
   let ty_a = ty_var (create_tvsymbol (id_fresh "a")) in
   create_fsymbol (id_fresh "undefined") [] ty_a
 
-     (** Convert a value into a term. The first component of the result are additional bindings
-    from closures, (roughly) sorted by strongly connected components. *)
-let rec term_of_value env vsenv v : (vsymbol * term) list * term =
-  match v.v_desc with
-  | Vundefined ->
-      (* TODO Replace ls_undefined by fs_any_function when branch
-       * fun-lits-noptree is merged:
-       * env, t_app fs_any_function [t_tuple []] v.v_ty *)
-      vsenv, t_app ls_undefined [] (Some v.v_ty)
-  | Vnum i -> vsenv, t_const (Constant.int_const i) v.v_ty
-  | Vstring s -> vsenv, t_const (Constant.ConstStr s) ty_str
-  | Vbool b -> vsenv, if b then t_bool_true else t_bool_false
-  | Vvoid -> vsenv, t_tuple []
-  | Vterm t -> vsenv, t
-  | Vreal _ | Vfloat _ | Vfloat_mode _ -> (* TODO *)
-      Format.kasprintf failwith "term_of_value: %a" print_value v
-  | Vconstr (rs, fs) ->
-      if rs_kind rs = RKfunc then
-        let term_of_field vsenv f = term_of_value env vsenv (field_get f) in
-        let vsenv, fs = Lists.map_fold_left term_of_field vsenv fs in
-        vsenv, t_app_infer (ls_of_rs rs) fs
-      else (* TODO bench/ce/{record_one_field,record_inv}.mlw/CVC4/WP *)
-        kasprintf failwith "Cannot construct term for constructor \
-                            %a that is not a function" print_rs rs
-  | Vfun (cl, arg, e) ->
-      (* TERM: fun arg -> t *)
-      let t = Opt.get_exn (Failure "Cannot convert function body to term")
-          (term_of_expr ~prop:false e) in
-
-      (* Rebind values from closure *)
-      let bind_cl vs v (mt, mv, vsenv) =
-        let vs' = create_vsymbol (id_clone vs.vs_name) v.v_ty in
-        let mt = ty_match mt vs.vs_ty v.v_ty in
-        let mv = Mvs.add vs (t_var vs') mv in
-        let vsenv, t = term_of_value env vsenv v in
-        let vsenv = (vs', t) :: vsenv in
-        mt, mv, vsenv in
-      let mt, mv, vsenv = Mvs.fold bind_cl cl (Mtv.empty, Mvs.empty, vsenv) in
-
-      (* Substitute argument type *)
-      let ty_arg = match v.v_ty.ty_node with
-        | Tyapp (ts, [ty_arg; _]) when ts_equal ts ts_func -> ty_arg
-        | _ -> assert false in
-      let mt = ty_match mt arg.vs_ty ty_arg in
-      let arg' = create_vsymbol (id_clone arg.vs_name) ty_arg in
-      let mv = Mvs.add arg (t_var arg') mv in
-      let t = t_ty_subst mt mv t in
-      vsenv, t_lambda [arg'] [] t
-  | Varray a ->
-      (* TERM: [make a.length (eps v. true)][0 <- a[0]]...[n-1 <- a[n-1]] *)
-      let pm = Pmodule.read_module env ["array"] "Array" in
-      let ls_make = Mstr.find "make" pm.Pmodule.mod_theory.Theory.th_export.Theory.ns_ls in
-      let ls_update = Mstr.find (Ident.op_update "") pm.Pmodule.mod_theory.Theory.th_export.Theory.ns_ls in
-      let rec loop (vsenv, t) ix =
-        if ix = Array.length a then vsenv, t
-        else
-          let t_ix = t_const (Constant.int_const_of_int ix) ty_int in
-          let vsenv, t_a_ix = term_of_value env vsenv a.(ix) in
-          let t = t_app_infer ls_update [t; t_ix; t_a_ix] in
-          loop (vsenv, t) (succ ix) in
-      let t_n = t_const (Constant.int_const_of_int (Array.length a)) ty_int in
-      let t_v =
-        let val_ty = match v.v_ty.ty_node with
-          | Tyapp (_, [ty]) -> ty
-          | _ -> assert false in
-        let vs = create_vsymbol (Ident.id_fresh "v") val_ty in
-        t_eps (t_close_bound vs t_true) in
-      let t_make = t_app_infer ls_make [t_n; t_v] in
-      loop (vsenv, t_make) 0
-  | Vpurefun (ty, m, v) ->
-      (* TERM: fun arg -> if arg = k0 then v0 else ... else v *)
-      (* TODO Use function literal [|mv...; _ -> v|] when available in Why3 *)
-      let arg = create_vsymbol (id_fresh "arg") ty in
-      let mk_case key value (vsenv, t) =
-        let vsenv, key = term_of_value env vsenv key in      (* k_i *)
-        let vsenv, value = term_of_value env vsenv value in  (* v_i *)
-        let t = t_if (t_equ (t_var arg) key) value t in (* if arg = k_i then v_i else ... *)
-        vsenv, t in
-      let vsenv, t = Mv.fold mk_case m (term_of_value env vsenv v) in
-      vsenv, t_lambda [arg] [] t
-
 (* RESULT *)
 
 type result =
@@ -430,6 +359,116 @@ let bind_pvs ?register pv v_t env =
   env
 let multibind_pvs ?register l tl env =
   List.fold_left2 (fun env pv v -> bind_pvs ?register pv v env) env l tl
+
+(** Convert a value into a term. The first component of the result are additional bindings
+    from closures, (roughly) sorted by strongly connected components. *)
+let rec term_of_value env vsenv v : (vsymbol * term) list * term =
+  match v.v_desc with
+  | Vundefined ->
+      (* TODO Replace ls_undefined by fs_any_function when branch
+       * fun-lits-noptree is merged:
+       * env, t_app fs_any_function [t_tuple []] v.v_ty *)
+      vsenv, t_app ls_undefined [] (Some v.v_ty)
+  | Vnum i ->
+      if ty_equal v.v_ty ty_int || is_range_ty v.v_ty then
+        vsenv, t_const (Constant.int_const i) v.v_ty
+      else
+        try_fix_projection env vsenv v
+  | Vstring s ->
+      if ty_equal v.v_ty ty_str then
+        vsenv, t_const (Constant.ConstStr s) ty_str
+      else
+        try_fix_projection env vsenv v
+  | Vbool b ->
+      if ty_equal v.v_ty ty_bool then
+        vsenv, if b then t_bool_true else t_bool_false
+      else
+        try_fix_projection env vsenv v
+  | Vvoid -> vsenv, t_tuple []
+  | Vterm t -> vsenv, t
+  | Vreal _ | Vfloat _ | Vfloat_mode _ -> (* TODO *)
+      Format.kasprintf failwith "term_of_value: %a" print_value v
+  | Vconstr (rs, fs) ->
+      if rs_kind rs = RKfunc then
+        let term_of_field vsenv f = term_of_value env vsenv (field_get f) in
+        let vsenv, fs = Lists.map_fold_left term_of_field vsenv fs in
+        let ls = ls_of_rs rs in
+        try
+          vsenv, t_app_infer ls fs
+        with e ->
+          Debug.dprintf debug_rac "@[<v>APP INFER@\n- @[%a@]@\n- @[%a@]@]@."
+            print_ls ls
+            Pp.(print_list space (fun fmt t -> fprintf fmt "(%a: %a)" print_term t (print_option_or_default "NONE" print_ty) t.t_ty)) fs;
+          raise e
+      else (* TODO bench/ce/{record_one_field,record_inv}.mlw/CVC4/WP *)
+        kasprintf failwith "Cannot construct term for constructor \
+                            %a that is not a function" print_rs rs
+  | Vfun (cl, arg, e) ->
+      (* TERM: fun arg -> t *)
+      let t = Opt.get_exn (Failure "Cannot convert function body to term")
+          (term_of_expr ~prop:false e) in
+
+      (* Rebind values from closure *)
+      let bind_cl vs v (mt, mv, vsenv) =
+        let vs' = create_vsymbol (id_clone vs.vs_name) v.v_ty in
+        let mt = ty_match mt vs.vs_ty v.v_ty in
+        let mv = Mvs.add vs (t_var vs') mv in
+        let vsenv, t = term_of_value env vsenv v in
+        let vsenv = (vs', t) :: vsenv in
+        mt, mv, vsenv in
+      let mt, mv, vsenv = Mvs.fold bind_cl cl (Mtv.empty, Mvs.empty, vsenv) in
+
+      (* Substitute argument type *)
+      let ty_arg = match v.v_ty.ty_node with
+        | Tyapp (ts, [ty_arg; _]) when ts_equal ts ts_func -> ty_arg
+        | _ -> assert false in
+      let mt = ty_match mt arg.vs_ty ty_arg in
+      let arg' = create_vsymbol (id_clone arg.vs_name) ty_arg in
+      let mv = Mvs.add arg (t_var arg') mv in
+      let t = t_ty_subst mt mv t in
+      vsenv, t_lambda [arg'] [] t
+  | Varray a ->
+      (* TERM: [make a.length (eps v. true)][0 <- a[0]]...[n-1 <- a[n-1]] *)
+      let pm = Pmodule.read_module env.env ["array"] "Array" in
+      let ls_make = Mstr.find "make" pm.Pmodule.mod_theory.Theory.th_export.Theory.ns_ls in
+      let ls_update = Mstr.find (Ident.op_update "") pm.Pmodule.mod_theory.Theory.th_export.Theory.ns_ls in
+      let rec loop (vsenv, t) ix =
+        if ix = Array.length a then vsenv, t
+        else
+          let t_ix = t_const (Constant.int_const_of_int ix) ty_int in
+          let vsenv, t_a_ix = term_of_value env vsenv a.(ix) in
+          let t = t_app_infer ls_update [t; t_ix; t_a_ix] in
+          loop (vsenv, t) (succ ix) in
+      let t_n = t_const (Constant.int_const_of_int (Array.length a)) ty_int in
+      let t_v =
+        let val_ty = match v.v_ty.ty_node with
+          | Tyapp (_, [ty]) -> ty
+          | _ -> assert false in
+        let vs = create_vsymbol (Ident.id_fresh "v") val_ty in
+        t_eps (t_close_bound vs t_true) in
+      let t_make = t_app_infer ls_make [t_n; t_v] in
+      loop (vsenv, t_make) 0
+  | Vpurefun (ty, m, v) ->
+      (* TERM: fun arg -> if arg = k0 then v0 else ... else v *)
+      (* TODO Use function literal [|mv...; _ -> v|] when available in Why3 *)
+      let arg = create_vsymbol (id_fresh "arg") ty in
+      let mk_case key value (vsenv, t) =
+        let vsenv, key = term_of_value env vsenv key in      (* k_i *)
+        let vsenv, value = term_of_value env vsenv value in  (* v_i *)
+        let t = t_if (t_equ (t_var arg) key) value t in (* if arg = k_i then v_i else ... *)
+        vsenv, t in
+      let vsenv, t = Mv.fold mk_case m (term_of_value env vsenv v) in
+      vsenv, t_lambda [arg] [] t
+
+and try_fix_projection env vsenv v =
+  let its, _, _ = ity_components (ity_of_ty v.v_ty) in
+  let itd = Pdecl.find_its_defn env.mod_known its in
+  let rs, rs_field = match itd.Pdecl.itd_constructors, itd.Pdecl.itd_fields with
+    | [rs], [rs_field] -> rs, rs_field
+    | _ -> failwith "term_of_value: complex vnum" in
+  let v' = {v with v_ty= ty_of_ity rs_field.rs_cty.cty_result} in
+  let vsenv, t_field = term_of_value env vsenv v' in
+  vsenv, fs_app (ls_of_rs rs) [t_field] v.v_ty
 
 (* BUILTINS *)
 
@@ -814,12 +853,9 @@ let rec import_model_value env known ity v =
   (* TODO If the type is a non-free record, we could similarily axiomatize
      the values of the fields by rules in the reduction engine. (Cf.
      bench/ce/record_one_field.mlw)  *)
-  let def, subst =
-    match ity.ity_node with
-    | Ityapp (ts, l1, l2) | Ityreg {reg_its= ts; reg_args= l1; reg_regs= l2} ->
-        Pdecl.find_its_defn known ts,
-        its_match_regs ts l1 l2
-    | Ityvar _ -> assert false in
+  let ts, l1, l2 = ity_components ity in
+  let def = Pdecl.find_its_defn known ts in
+  let subst = its_match_regs ts l1 l2 in
   (* let is_ity_array env ity =
    *   let pm = Pmodule.read_module env ["array"] "Array" in
    *   let its_array = Pmodule.ns_find_its pm.Pmodule.mod_export ["array"] in
@@ -829,7 +865,7 @@ let rec import_model_value env known ity v =
   (* if is_ity_array env ity then (\* TODO *\)
    *   kasprintf failwith "ARRAY: %a@." print_model_value v
    * else *)
-  if is_range_type_def def.Pdecl.itd_its.its_def then
+  if is_range_ty (ty_of_ity ity) then
     match v with
     | Proj (_, Integer s)
     | Integer s -> value (ty_of_ity ity) (Vnum (BigInt.of_string s))
@@ -841,8 +877,18 @@ let rec import_model_value env known ity v =
         raise (CannotImportModelValue msg) in
     match v with
     | Integer s ->
-        assert (ity_equal ity ity_int);
-        value (ty_of_ity ity) (Vnum (BigInt.of_string s))
+        Debug.dprintf debug_check_ce "import integer type %a/%d (%d) %b@." print_ity ity (Weakhtbl.tag_hash ity.ity_tag) (Weakhtbl.tag_hash ity_int.ity_tag) (ity_equal ity ity_int);
+        let vnum = Vnum (BigInt.of_string s) in
+        if ity_equal ity ity_int || is_range_ty (ty_of_ity ity) then
+          value (ty_of_ity ity) vnum
+        else
+          let its, _, _ = ity_components ity in
+          let itd = Pdecl.find_its_defn known its in
+          ( match itd.Pdecl.itd_constructors, itd.Pdecl.itd_fields with
+            | [rs_constr], [rs_field] when ity_equal rs_field.rs_cty.cty_result ity_int ->
+                let v = value (ty_of_ity rs_field.rs_cty.cty_result) vnum in
+                value (ty_of_ity ity) (Vconstr (rs_constr, [field v]))
+            | _ -> failwith "import integer" )
     | String s ->
         assert (ity_equal ity ity_str);
         value ty_str (Vstring s)
@@ -1094,7 +1140,7 @@ let task_of_term ?(vsenv=[]) env t =
         add_decl task (create_prop_decl Paxiom prs t)
     | Dparam ls when Mls.contains lsenv ls ->
         (* Take value from lsenv (i.e. env.rsenv) for declaration *)
-        let vsenv, t = term_of_value env.env [] (Mls.find ls lsenv) in
+        let vsenv, t = term_of_value env [] (Mls.find ls lsenv) in
         let task, ls_mt, ls_mv = List.fold_right bind_term vsenv (task, ls_mt, ls_mv) in
         let t = t_ty_subst ls_mt ls_mv t in
         let decl = Decl.make_ls_defn ls [] t in
@@ -1103,7 +1149,7 @@ let task_of_term ?(vsenv=[]) env t =
   let task = Mid.fold add_known env.th_known task in
   let task, ls_mv = Mrs.fold bind_fun env.funenv (task, ls_mv) in
   let task, ls_mt, ls_mv = List.fold_right bind_term vsenv (task, ls_mt, ls_mv) in
-  let task, ls_mt, ls_mv = Mvs.fold (bind_value env.env) env.vsenv (task, ls_mt, ls_mv) in
+  let task, ls_mt, ls_mv = Mvs.fold (bind_value env) env.vsenv (task, ls_mt, ls_mv) in
   let t = t_ty_subst ls_mt ls_mv t in
   let task =
     if t.t_ty = None then (* Add a formula as goal directly ... *)
@@ -1149,7 +1195,7 @@ let bind_univ_quant_vars env task =
         let vs, _, t = t_open_quant tq in
         let values = List.map (fun vs -> Opt.get_exn Exit (get_value_for_quant_var env vs)) vs in
         let _, task = Task.task_separate_goal task in
-        let task, ls_mt, ls_mv = List.fold_right2 (bind_value env.env) vs values (task, Mtv.empty, Mvs.empty) in
+        let task, ls_mt, ls_mv = List.fold_right2 (bind_value env) vs values (task, Mtv.empty, Mvs.empty) in
         let prs = Decl.create_prsymbol (id_fresh "goal") in
         let t = t_ty_subst ls_mt ls_mv t in
         Task.add_prop_decl task Decl.Pgoal prs t
