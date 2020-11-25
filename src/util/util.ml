@@ -82,3 +82,12 @@ let timing_step_completed str =
 
 let get_timings () = timing_map
 
+let is_sexp_simple_token s =
+  let rec loop i =
+    i < 0 || (
+      match s.[i] with
+      | 'a'..'z' | 'A'..'Z' | '0'..'9' | '_' | '-' ->
+          (* Very conservative for compatiblity with python's sexpdata in bench/test_mlw_printer *)
+          loop (pred i)
+      | _ -> false ) in
+  String.length s > 0 && loop (pred (String.length s))

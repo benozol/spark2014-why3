@@ -87,3 +87,6 @@ val timing_step_completed : string -> unit
 val get_timings : unit -> (string, float) Hashtbl.t
 (* return the current timings obtained by calls to init_timing and
  * timing_step_completed *)
+
+ (** Check if a non-empty string contains only characters [a-zA-Z0-9_-] *)
+val is_sexp_simple_token : string -> bool
