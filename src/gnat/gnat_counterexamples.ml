@@ -3,7 +3,6 @@
    Collect_data_model). *)
 open Why3
 open Wstdlib
-open Smt2_model_defs
 
 let get_only_first l =
   match l with
@@ -75,83 +74,3 @@ and remove_fields_array a =
 let () = Model_parser.register_remove_field
     (fun (attrs, v) -> remove_fields_attrs attrs, remove_fields v)
 
-(* This function should remain consistant with the theories and the gnat2why
-   conversion.
-*)
-let apply_to_record (list_records: (string list) Mstr.t)
-    (noarg_constructors: string list) (t: term) =
-
-  let rec array_apply_to_record (a: array) =
-    match a with
-    | Array_var _ -> a
-    | Const x ->
-        let x = apply_to_record x in
-        Const x
-    | Store (a, t1, t2) ->
-        let a = array_apply_to_record a in
-        let t1 = apply_to_record t1 in
-        let t2 = apply_to_record t2 in
-        Store (a, t1, t2)
-
-  and apply_to_record (v: term) =
-    match v with
-    | Sval _ | Cvc4_Variable _ | Function_Local_Variable _ -> v
-    (* Variable with no arguments can actually be constructors. We check this
-       here and if it is the case we change the variable into a value. *)
-    | Variable s when List.mem s noarg_constructors ->
-        Apply (s, [])
-    | Variable _ -> v
-    | Array a ->
-        Array (array_apply_to_record a)
-    | Record (s, l) ->
-        let l = List.map (fun (f,v) -> f, apply_to_record v) l in
-        Record (s, l)
-    | Apply (s, l) ->
-        let l = List.map apply_to_record l in
-        if Mstr.mem s list_records then begin
-          let fields = Mstr.find s list_records in
-          match fields with
-          | _ when get_only_first fields ->
-              List.hd l
-          | _ ->
-            (* For __split_fields and __split__discrs, we need to rebuild the
-               whole term. Also, these can apparently appear anywhere in the
-               record so we need to scan the whole record. *)
-            let new_st =
-                List.fold_left2 (fun acc s e ->
-                  if Strings.has_prefix "us_split_fields" s ||
-                     Strings.has_prefix "us_split_discrs" s ||
-                     Strings.has_prefix "__split_discrs" s ||
-                     Strings.has_prefix "__split_fields" s
-                  then
-                    (match e with
-                    | Record (_, a) -> acc @ a
-                    | _ -> (s,e) :: acc)
-                  else
-                    if Strings.has_prefix "rec__ext" s then
-                      acc
-                    else
-                      (s, e) :: acc)
-                  [] fields l
-              in
-              Record (s, new_st)
-       end
-        else
-          Apply (s, l)
-    | Ite (t1, t2, t3, t4) ->
-        let t1 = apply_to_record t1 in
-        let t2 = apply_to_record t2 in
-        let t3 = apply_to_record t3 in
-        let t4 = apply_to_record t4 in
-        Ite (t1, t2, t3, t4)
-    | To_array t1 ->
-        let t1 = apply_to_record t1 in
-        To_array t1
-    (* TODO Does not exist yet *)
-    | Trees _ -> assert false
-
-  in
-  apply_to_record t
-
-(* Actually register the conversion function *)
-let () = Collect_data_model.register_apply_to_records apply_to_record
