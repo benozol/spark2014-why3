@@ -37,6 +37,8 @@ let opt_proof_dir : string option ref = ref None
 let opt_ce_mode = ref false
 let opt_ce_prover = ref "cvc4_ce"
 let opt_warn_prover = ref None
+let opt_check_ce : [`No | `Filter | `Derive] ref = ref `Filter
+let opt_check_ce_prover = ref None
 
 let opt_limit_line : Gnat_expl.limit_mode option ref = ref None
 let opt_limit_region : Gnat_loc.region option ref = ref None
@@ -66,6 +68,17 @@ let set_filename s =
    else
       Gnat_util.abort_with_message ~internal:true
       "Only one file name should be given."
+
+let set_check_ce = function
+  | "no" -> opt_check_ce := `No
+  | "filter" -> opt_check_ce := `Filter
+  | "derive" -> opt_check_ce := `Derive
+  | _ -> Gnat_util.abort_with_message ~internal:true
+           "argument for option --check-ce should be one of\
+           (no|filter|derive)."
+
+let set_check_ce_prover str =
+  opt_check_ce_prover := if str = "" then None else Some str
 
 let set_proof_mode s =
    if s = "no_wp" then
@@ -215,6 +228,12 @@ let options = Arg.align [
           " Specify additionnal configuration file";
    "--counterexample", Arg.String set_ce_mode,
           " on if the counterexample for unproved VC should be get, off elsewhere";
+   "--check-ce", Arg.String set_check_ce,
+          " Check counterexample using RAC. Possible values: no (disabled, by \
+           default), filter (retain the counterexample if the RAC check \
+           succeeds), derive (derive a counterexample from the RAC execution).";
+   "--check-ce-prover", Arg.String set_check_ce_prover,
+   " Prover to check terms in RAC when they cannot be reduced (none by default)";
    "--ce-prover", Arg.Set_string opt_ce_prover,
           " Give a specific prover for counterexamples";
    "--warn-prover", Arg.String set_warn_prover,
@@ -479,6 +498,10 @@ let () =
   | _ -> ()
 
 let counterexamples = !opt_ce_mode
+
+let check_ce = !opt_check_ce
+
+let check_ce_prover = !opt_check_ce_prover
 
 let manual_prover =
   (* sanity check - we don't allow combining
