@@ -14,7 +14,7 @@ type result_info =
   | Proved of stats * int * int
   | Not_Proved of
        Task.task option *
-       Model_parser.model option *
+       (Model_parser.model * Counterexample.ce_summary) option *
        (string * string) option
 
 type msg =
@@ -24,7 +24,7 @@ type msg =
     stats_trivial : int;
     check_tree    : Json_base.json;
     extra_info    : int option;
-    cntexmp_model : Model_parser.model option;
+    cntexmp_model : (Model_parser.model * Counterexample.ce_summary) option;
     manual_proof  : (string * string) option
   }
 
@@ -95,19 +95,15 @@ let spark_counterexample_transform me_name =
      See Flow_Error_Messages.Error_Msg_Proof.Do_Pretty_Cntexmp*)
   me_name.Model_parser.men_name
 
-let print_cntexmp_model fmt model =
-  match model with
-  | None -> ()
-  | Some m ->
-    if not (Model_parser.is_model_empty m) then begin
-      Format.fprintf fmt ", ";
-      print_json_field "cntexmp"
-        (Model_parser.print_model_json
-           ~me_name_trans:spark_counterexample_transform
-           ~vc_line_trans:(fun _ -> "vc_line"))
-        fmt
-        m
-    end
+let print_cntexmp_model fmt = function
+  | Some (m, s) when not (Model_parser.is_model_empty m) ->
+    let vc_line_trans _ = "vc_line" and me_name_trans = spark_counterexample_transform in
+    let print_model = Model_parser.print_model_json ~me_name_trans ~vc_line_trans in
+    let print_summary fmt = Format.kasprintf (Json_base.string fmt) "@[<h>%a@]"
+      (Counterexample.print_ce_summary_title ?check_ce:None) in
+    Format.fprintf fmt ", %a, %a" (print_json_field "cntexmp" print_model) m
+      (print_json_field "cntexmp_summary" print_summary) s
+  | _ -> ()
 
 let print_manual_proof_info fmt info =
   match info with

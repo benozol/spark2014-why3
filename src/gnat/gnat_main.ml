@@ -143,6 +143,26 @@ let all_split_subp c subp =
    C.all_split_leaf_goals ();
    Gnat_objectives.clear ()
 
+let select_model ctr pm models =
+  let Controller_itp.{controller_config= cnf; controller_env= env} = ctr in
+  let reduce_config =
+    let trans = "compute_in_goal" and prover = Gnat_config.check_ce_prover in
+    Pinterp.rac_reduce_config_lit cnf env ~trans ?prover () in
+  let open Counterexample in
+  match Gnat_config.check_ce with
+  | `No ->
+      let check = false and sort_models = prioritize_last_model in
+      select_model ~check ~sort_models env pm models
+  | `Filter ->
+      let check = true and sort_models = prioritize_last_model in
+      let drop_bad (m, s) = match s with BAD_CE -> None | _ -> Some (m, s) in
+      Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
+        drop_bad
+  | `Derive ->
+      let check = true and sort_models = prioritize_first_good_model in
+      Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
+        Gnat_counterexamples.model_to_model
+
 let report_messages c obj =
   let s = c.Controller_itp.controller_session in
   let result =
@@ -168,14 +188,9 @@ let report_messages c obj =
               (* Resource limit was hit, the model is not useful *)
               None
             else
-              let open Counterexample in
-              let open Call_provers in
-              let th = Session_itp.find_th s pa.Session_itp.parent in
+              let th = Session_itp.(find_th c.Controller_itp.controller_session pa.parent) in
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
-              let env = c.Controller_itp.controller_env in
-              let sort_models = prioritize_last_non_empty_model in
-              let model = Opt.map fst (select_model ~sort_models env pm pr.pr_models) in
-              model
+              select_model c pm pr.pr_models
         | _ -> None
       in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
@@ -237,6 +252,8 @@ let save_session_and_exit c signum =
 let _ =
   if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
   Debug.set_flag Model_parser.debug_force_binary_floats;
+  let out = open_out "/tmp/gnatwhy3.log" in
+  Debug.set_debug_formatter (Format.formatter_of_out_channel out);
   Model_parser.customize_clean (new Gnat_counterexamples.clean);
   ( try
       let log = Sys.getenv "GNATWHY3LOG" in

@@ -88,3 +88,10 @@ class clean = object (self)
     | Some me as res when in_spark me -> res
     | _ -> None
 end
+
+let model_to_model (m, summary) =
+  let open Counterexample in
+  match summary with
+  | NCCE log | SWCE log | NCCE_SWCE log ->
+      Some (model_of_exec_log ~original_model:m log, summary)
+  | _ -> None

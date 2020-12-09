@@ -35,6 +35,14 @@ val counterexamples : bool
 (* Reflects the value of the option --counterexample, default off
    Counter examples are also disabled when CVC4 is not found *)
 
+val check_ce : [`No | `Filter | `Derive]
+(* Reflects the value of option --check-ce, if and how RAC should be used to check
+   counterexamples. *)
+
+val check_ce_prover : string option
+(* Reflects the value of option --check-ce-prover, which prover to fall back when terms
+   cannot be reduced in RAC. *)
+
 val manual_prover : Whyconf.prover option
 (* Currently, if a manual prover is provided, it must be the only one. So in
    when dealing with manual proof, it makes sense to speak of "the prover" *)
