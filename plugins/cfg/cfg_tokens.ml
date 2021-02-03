@@ -34,6 +34,8 @@ type token =
   | RIGHTBRC
   | RETURNS
   | RETURN
+  | TERM_RETURN
+  | TERM_ABSURD
   | REQUIRES
   | REF
   | REC
@@ -68,6 +70,7 @@ type token =
   | LET
   | LEMMA
   | LEFTSQ
+  | LEFTSQBAR
   | LEFTPAR
   | LEFTBRC
   | LARROW
@@ -90,6 +93,7 @@ type token =
   | EXPORT
   | EXISTS
   | EXCEPTION
+  | EQUALARROW
   | EQUAL
   | EPSILON
   | EOF
@@ -115,6 +119,7 @@ type token =
   | BREAK
   | BEGIN
   | BARBAR
+  | BARRIGHTSQ
   | BAR
   | AXIOM
   | ATTRIBUTE of (string)

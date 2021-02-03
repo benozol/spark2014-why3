@@ -21,6 +21,11 @@ TryWhy3
 
 Provers
   * support for PVS 7.1 (released Apr 30, 2020)
+  * support for Z3 4.8.7 (released Nov 19, 2019)
+  * support for Z3 4.8.8 (released May 9, 2020)
+  * support for Z3 4.8.9 (released Sep 11, 2020)
+  * support for AltErgo 2.3.3 (released Aug 19, 2020)
+  * support for Coq 8.13.0 (released Jan 7, 2021)
 
 Version 1.3.3, September 11, 2020
 ---------------------------------
