@@ -92,6 +92,6 @@ end
 let model_to_model (m, summary) =
   let open Counterexample in
   match summary with
-  | NCCE log | SWCE log | NCCE_SWCE log ->
+  | NC log | SW log | NCSW log ->
       Some (model_of_exec_log ~original_model:m log, summary)
   | _ -> None

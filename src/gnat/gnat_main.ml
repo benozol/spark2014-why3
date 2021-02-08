@@ -146,22 +146,30 @@ let all_split_subp c subp =
 let select_model ctr pm models =
   let Controller_itp.{controller_config= cnf; controller_env= env} = ctr in
   let reduce_config =
-    let trans = "compute_in_goal" and prover = Gnat_config.check_ce_prover in
-    Pinterp.rac_reduce_config_lit cnf env ~trans ?prover () in
+    Pinterp.rac_reduce_config_lit cnf env ~trans:"compute_in_goal"
+      ?prover:Gnat_config.check_ce_prover ~try_negate:true () in
   let open Counterexample in
   match Gnat_config.check_ce with
-  | `No ->
-      let check = false and sort_models = prioritize_last_model in
-      select_model ~check ~sort_models env pm models
-  | `Filter ->
-      let check = true and sort_models = prioritize_last_model in
-      let drop_bad (m, s) = match s with BAD_CE -> None | _ -> Some (m, s) in
-      Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
-        drop_bad
+  | `No -> select_model_last_non_empty models
+  | `Filter -> (
+      match select_model_last_non_empty models with
+      | None -> None
+      | Some (m, _) ->
+          let mr = check_model reduce_config env pm m in
+          Debug.dprintf debug_check_ce
+            "@[<v2>Result of checking model:@\n@[%a@]@]@."
+            (print_check_model_result ?verb_lvl:None) mr;
+          let s = ce_summary mr in
+          Debug.dprintf debug_check_ce "@[<v2>Summary: %a@]@."
+            print_ce_summary_kind s;
+          if s = BAD then None else Some (m, s) )
   | `Derive ->
       let check = true and sort_models = prioritize_first_good_model in
       Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
         Gnat_counterexamples.model_to_model
+
+let clean_model =
+  Model_parser.map_filter_model_elements (new Gnat_counterexamples.clean)#element
 
 let report_messages c obj =
   let s = c.Controller_itp.controller_session in
@@ -190,9 +198,9 @@ let report_messages c obj =
             else
               let th = Session_itp.(find_th c.Controller_itp.controller_session pa.parent) in
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
-              select_model c pm pr.pr_models
-        | _ -> None
-      in
+              let mo = select_model c pm pr.Call_provers.pr_models in
+              Opt.map (fun (m,s) -> clean_model m, s) mo
+        | _ -> None in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
       Gnat_report.Not_Proved (unproved_task, model, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
@@ -254,7 +262,6 @@ let _ =
   Debug.set_flag Model_parser.debug_force_binary_floats;
   let out = open_out "/tmp/gnatwhy3.log" in
   Debug.set_debug_formatter (Format.formatter_of_out_channel out);
-  Model_parser.customize_clean (new Gnat_counterexamples.clean);
   ( try
       let log = Sys.getenv "GNATWHY3LOG" in
       let out = open_out_gen [Open_text; Open_creat; Open_append] 0o666 log in
