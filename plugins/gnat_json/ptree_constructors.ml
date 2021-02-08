@@ -3,14 +3,11 @@ open Ptree
 
 (** Smart constructors for [Ptree] nodes *)
 
-let loc_counter = ref 0
-
 let get_pos ?loc () = match loc with
   | Some loc ->
       loc
   | None ->
-      incr loc_counter;
-      Loc.user_position "<dummy>" !loc_counter 0 0
+      Mlw_printer.id_loc ()
 
 let mk_ident attrs s = {
   id_str = s;
