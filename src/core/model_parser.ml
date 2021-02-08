@@ -1111,6 +1111,21 @@ type raw_model_parser = printer_mapping -> string -> model_element list
 
 let model_parser (raw: raw_model_parser) : model_parser =
   fun ({Printer.vc_term_loc; vc_term_attrs} as pm) str ->
+  (* let pp_ident fmt id = fprintf fmt "%a/%d" Ident.print_decoded id.id_string (Weakhtbl.tag_hash id.id_tag) in
+   * Warning.emit "@[<hov2>PROJS: %a@]"
+   *   Pp.(print_list comma (print_pair_delim nothing colon nothing string pp_ident))
+   *   (Mstr.bindings pm.list_projections);
+   * Warning.emit "@[<hov2>FIELDS: %a@]"
+   *   Pp.(print_list comma (print_pair_delim nothing colon nothing string pp_ident))
+   *   (Mstr.bindings pm.list_fields);
+   * Warning.emit "@[<hov2>RRRECORDS: %a@]"
+   *   Pp.(print_list comma
+   *         (print_pair_delim nothing equal nothing
+   *            string
+   *            (print_list_delim ~start:lbrace ~stop:rbrace ~sep:semi
+   *               (fun fmt (name, trace, oid) ->
+   *                  fprintf fmt "%s (%s) %a" name trace (print_option pp_ident) oid))))
+   *   (Mstr.bindings pm.list_records); *)
   raw pm str |> (* For example, Smtv2_model_parser.parse for "smtv2" *)
   build_model_rec pm |>
   map_filter_model_files !clean#element |>

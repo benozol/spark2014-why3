@@ -1639,15 +1639,19 @@ let check_term ?vsenv ctx t =
         (Opt.bind ctx.c_env.rac.rac_reduce.rac_prover
            (fun rp -> check_term_dispatch ~try_negate rp task))
     else res in
+  let filename = Filename.temp_file "gnatwhy3-task" ".why" in
+  let out = open_out filename in
+  fprintf (formatter_of_out_channel out) "%a@." Pretty.print_task task;
+  close_out out;
   match res with
   | Some true ->
-      Debug.dprintf debug_rac_check_term_result "%a@." report_cntr_head (ctx, "is ok", t)
+      Debug.dprintf debug_rac_check_term_result "%a (%s)@." report_cntr_head (ctx, "is ok", t) filename
   | Some false ->
-      Debug.dprintf debug_rac_check_term_result "%a@." report_cntr_head (ctx, "has failed", t);
+      Debug.dprintf debug_rac_check_term_result "%a (%s)@." report_cntr_head (ctx, "has failed", t) filename;
       raise (Contr (ctx, t))
   | None ->
       let msg = "cannot be evaluated" in
-      Debug.dprintf debug_rac_check_term_result "%a@." report_cntr_head (ctx, msg, t);
+      Debug.dprintf debug_rac_check_term_result "%a (%s)@." report_cntr_head (ctx, msg, t) filename;
       if ctx.c_env.rac.skip_cannot_compute then
         Warning.emit "%a@." report_cntr_head (ctx, msg, t)
       else

@@ -198,6 +198,11 @@ let report_messages c obj =
               select_model c pm pr.Call_provers.pr_models
         | _ -> None in
       let model = Opt.map (fun (m, s) -> Gnat_counterexamples.post_clean#model m, s) model in
+      Format.fprintf (Debug.get_debug_formatter ()) "FINAL MODEL: %a@."
+        (Pp.print_option_or_default "NONE"
+           (let me_name_trans men = men.Model_parser.men_name in
+            Model_parser.print_model ~filter_similar:false ~me_name_trans ~print_attrs:true))
+        (Opt.map fst model);
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
       Gnat_report.Not_Proved (unproved_task, model, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
@@ -255,6 +260,11 @@ let _ =
   Debug.set_flag Model_parser.debug_force_binary_floats;
   Debug.set_flag Pinterp.debug_disable_builtin_mach;
   Model_parser.customize_clean Gnat_counterexamples.clean;
+  let out = open_out_gen [Open_text; Open_creat; Open_append] 0o666 "/tmp/gnatwhy3.log" in
+  ( let fmt = Format.formatter_of_out_channel out in
+    Format.fprintf fmt "@.@.===== %s@." Gnat_config.filename;
+    Warning.set_hook (fun ?loc:_ line -> Format.fprintf fmt "%s@." line);
+    Debug.set_debug_formatter fmt );
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
@@ -282,8 +292,10 @@ let _ =
         ()
     end;
     Gnat_scheduler.main_loop (ending c);
+    Format.fprintf (Debug.get_debug_formatter ()) "---> OK@."
   with e when Debug.test_flag Debug.stack_trace -> raise e
   | Out_of_memory as e -> raise e
   | e ->
+      Format.fprintf (Debug.get_debug_formatter ()) "---> EXC: %a@." Exn_printer.exn_printer e;
       let s = Pp.sprintf "%a.@." Exn_printer.exn_printer e in
       Gnat_util.abort_with_message ~internal:true s
