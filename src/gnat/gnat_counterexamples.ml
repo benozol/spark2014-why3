@@ -29,21 +29,25 @@ let get_field_attr attr =
   | _ -> None
 
 let for_field clean (f, v) =
-  if List.mem f ["__split_discrs"; "__split_fields"] then
+  let prefixes =
+    ["us_split_fields"; "us_split_discrs"; "__split_discrs"; "__split_fields"] in
+  if List.exists (fun s -> Strings.has_prefix s f) prefixes then
     match v with
     | Record fs ->
         let for_field (f, v) =
-          Opt.bind (clean#value v) @@ fun v ->
-          Some (f, v) in
+          match clean#value v with
+          | Some v -> Some (f, v)
+          | None -> None in
         Lists.map_filter for_field fs
-    | _ ->
-        Opt.get_def [] @@
-        Opt.bind (clean#value v) @@ fun v -> Some [f, v]
+    | _ -> (
+        match clean#value v with
+        | None -> []
+        | Some v -> [f, v] )
   else if Strings.has_prefix "rec__ext" f then
     []
-  else
-    Opt.get_def [] @@
-    Opt.bind (clean#value v) @@ fun v -> Some [f, v]
+  else match clean#value v with
+    | None -> []
+    | Some v -> [f, v]
 
 (* The returned [fields] are the strings S in attributes [field:N:S], which have
    to be removed from the model element name *)
