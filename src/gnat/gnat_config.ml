@@ -38,7 +38,7 @@ let opt_ce_mode = ref false
 let opt_ce_prover = ref "cvc4_ce"
 let opt_warn_prover = ref None
 let opt_check_ce : [`No | `Filter | `Derive] ref = ref `Filter
-let opt_check_ce_prover = ref None
+let opt_check_ce_prover = ref (Some "cvc4")
 
 let opt_limit_line : Gnat_expl.limit_mode option ref = ref None
 let opt_limit_region : Gnat_loc.region option ref = ref None
