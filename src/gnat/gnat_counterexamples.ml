@@ -75,7 +75,7 @@ let in_spark (e: model_element) =
 (** Clean values by a) replacing records according to [only_first_field2] and
    simplifying discriminant records b) removing unparsed values, in which the
    function returns [None]. *)
-class clean = object (self)
+let clean = object (self)
   inherit Model_parser.clean as super
 
   method! record fs =
@@ -87,9 +87,14 @@ class clean = object (self)
       | fs -> Some (Record fs)
 
   method! element me =
-    let me_name = clean_name me.me_name in
-    match super#element {me with me_name} with
-    | Some me as res when in_spark me -> res
+    match super#element me with
+    | Some me ->
+        let {Model_parser.men_name= name; men_attrs= attrs} = me.me_name in
+        let men_name = Ident.get_model_trace_string ~name ~attrs in
+        let men_name = List.hd (Strings.bounded_split '@' men_name 2) in
+        let me_name = clean_name {me.me_name with men_name} in
+        let me = {me with me_name} in
+        if in_spark me then Some me else None
     | _ -> None
 end
 
