@@ -168,9 +168,6 @@ let select_model ctr pm models =
       Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
         Gnat_counterexamples.model_to_model
 
-let clean_model =
-  Model_parser.map_filter_model_elements (new Gnat_counterexamples.clean)#element
-
 let report_messages c obj =
   let s = c.Controller_itp.controller_session in
   let result =
@@ -198,9 +195,9 @@ let report_messages c obj =
             else
               let th = Session_itp.(find_th c.Controller_itp.controller_session pa.parent) in
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
-              let mo = select_model c pm pr.Call_provers.pr_models in
-              Opt.map (fun (m,s) -> clean_model m, s) mo
+              select_model c pm pr.Call_provers.pr_models
         | _ -> None in
+      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.clean#model m, s) model in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
       Gnat_report.Not_Proved (unproved_task, model, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
@@ -256,8 +253,6 @@ let save_session_and_exit c signum =
 let _ =
   if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
   Debug.set_flag Model_parser.debug_force_binary_floats;
-  let out = open_out "/tmp/gnatwhy3.log" in
-  Debug.set_debug_formatter (Format.formatter_of_out_channel out);
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
