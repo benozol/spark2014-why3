@@ -253,6 +253,7 @@ let save_session_and_exit c signum =
 let _ =
   if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
   Debug.set_flag Model_parser.debug_force_binary_floats;
+  Debug.set_flag Pinterp.debug_disable_builtin_mach;
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
