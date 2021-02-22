@@ -259,6 +259,7 @@ let save_session_and_exit c signum =
 let _ =
   if Gnat_config.debug then Debug.(set_flag (lookup_flag "gnat_ast"));
   Debug.set_flag Model_parser.debug_force_binary_floats;
+  Debug.set_flag Pinterp.debug_disable_builtin_mach;
   ( try
       let log = Sys.getenv "GNATWHY3LOG" in
       let out = open_out_gen [Open_text; Open_creat; Open_append] 0o666 log in
