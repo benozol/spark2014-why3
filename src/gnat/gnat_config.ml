@@ -77,6 +77,10 @@ let set_check_ce = function
            "argument for option --check-ce should be one of\
            (no|filter|derive)."
 
+let () =
+  try set_check_ce (Sys.getenv "GNATWHY3CHECKCE")
+  with Not_found -> ()
+
 let set_check_ce_prover str =
   opt_check_ce_prover := if str = "" then None else Some str
 

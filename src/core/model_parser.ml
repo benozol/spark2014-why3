@@ -1109,26 +1109,40 @@ let model_for_positions_and_decls model ~positions =
 type model_parser = printer_mapping -> string -> model
 type raw_model_parser = printer_mapping -> string -> model_element list
 
+let ix = ref 0
+
+let spark_counterexample_transform me_name =
+  (* Just return the name of the model element. Transformation of model
+     element names to SPARK syntax is now handled in gnat2why.
+     See Flow_Error_Messages.Error_Msg_Proof.Do_Pretty_Cntexmp*)
+  me_name.men_name
+
+let filename = ref ""
+
+let print_el el =
+  (let out = open_out (Filename.chop_extension !filename^".raw-"^string_of_int !ix) in
+   let me_name_trans = spark_counterexample_transform in
+   let print_el = print_model_elements ~sep:Pp.semi ~print_attrs:true ~filter_similar:false ~at_loc:("",0) ~print_model_value ~me_name_trans in
+   Format.fprintf (Format.formatter_of_out_channel out) "@[<v>%a@]@."
+     print_el el;
+   close_out out)
+
+let print_fl desc fl =
+  (let out = open_out (Filename.chop_extension !filename^".fl-"^desc^"-"^string_of_int !ix) in
+   Format.fprintf (Format.formatter_of_out_channel out) "@[<v>%a@]@."
+     (Pp.print_list Pp.newline (print_model_file ~filter_similar:false ~print_attrs:true ~print_model_value ~me_name_trans:spark_counterexample_transform))
+     (Mstr.bindings fl);
+   close_out out)
+
 let model_parser (raw: raw_model_parser) : model_parser =
   fun ({Printer.vc_term_loc; vc_term_attrs} as pm) str ->
-  (* let pp_ident fmt id = fprintf fmt "%a/%d" Ident.print_decoded id.id_string (Weakhtbl.tag_hash id.id_tag) in
-   * Warning.emit "@[<hov2>PROJS: %a@]"
-   *   Pp.(print_list comma (print_pair_delim nothing colon nothing string pp_ident))
-   *   (Mstr.bindings pm.list_projections);
-   * Warning.emit "@[<hov2>FIELDS: %a@]"
-   *   Pp.(print_list comma (print_pair_delim nothing colon nothing string pp_ident))
-   *   (Mstr.bindings pm.list_fields);
-   * Warning.emit "@[<hov2>RRRECORDS: %a@]"
-   *   Pp.(print_list comma
-   *         (print_pair_delim nothing equal nothing
-   *            string
-   *            (print_list_delim ~start:lbrace ~stop:rbrace ~sep:semi
-   *               (fun fmt (name, trace, oid) ->
-   *                  fprintf fmt "%s (%s) %a" name trace (print_option pp_ident) oid))))
-   *   (Mstr.bindings pm.list_records); *)
+  incr ix;
   raw pm str |> (* For example, Smtv2_model_parser.parse for "smtv2" *)
+  (fun el -> print_el el; el) |>
   build_model_rec pm |>
+  (fun fl -> print_fl "pre" fl; fl) |>
   map_filter_model_files !clean#element |>
+  (fun fl -> print_fl "post" fl; fl) |>
   handle_contradictory_vc pm.Printer.vc_term_loc |>
   fun model_files -> { model_files; vc_term_loc; vc_term_attrs }
 

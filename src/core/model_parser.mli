@@ -340,3 +340,5 @@ val register_model_parser : desc:Pp.formatted -> string -> raw_model_parser -> u
 val lookup_model_parser : string -> model_parser
 
 val list_model_parsers : unit -> (string * Pp.formatted) list
+
+val filename : string ref

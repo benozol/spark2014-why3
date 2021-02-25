@@ -260,6 +260,7 @@ let _ =
   Debug.set_flag Model_parser.debug_force_binary_floats;
   Debug.set_flag Pinterp.debug_disable_builtin_mach;
   Model_parser.customize_clean Gnat_counterexamples.clean;
+  Model_parser.filename := Gnat_config.filename;
   let out = open_out_gen [Open_text; Open_creat; Open_append] 0o666 "/tmp/gnatwhy3.log" in
   ( let fmt = Format.formatter_of_out_channel out in
     Format.fprintf fmt "@.@.===== %s@." Gnat_config.filename;
