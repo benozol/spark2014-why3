@@ -101,6 +101,10 @@ let print_cntexmp_model fmt = function
     let print_model = Model_parser.print_model_json ~me_name_trans ~vc_line_trans in
     let print_summary fmt = Format.kasprintf (Json_base.string fmt) "@[<h>%a@]"
       (Counterexample.print_ce_summary_title ?check_ce:None) in
+    (let out = open_out (Filename.chop_extension Gnat_config.filename^".ce") in
+     Format.fprintf (Format.formatter_of_out_channel out) "%a@."
+       print_model m;
+       close_out out);
     Format.fprintf fmt ", %a, %a" (print_json_field "cntexmp" print_model) m
       (print_json_field "cntexmp_summary" print_summary) s
   | _ -> ()
