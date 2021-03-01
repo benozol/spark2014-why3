@@ -199,7 +199,7 @@ let report_messages c obj =
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
               select_model obj c pm pr.Call_provers.pr_models
         | _ -> None in
-      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.clean#model m, s) model in
+      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.post_clean#model m, s) model in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
       Gnat_report.Not_Proved (unproved_task, model, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
@@ -268,6 +268,7 @@ let _ =
       Format.fprintf fmt "@.@.===== %s@." Gnat_config.filename;
       Warning.set_hook (fun ?loc:_ line -> Format.fprintf fmt "%s@." line)
     with Not_found -> () );
+  Model_parser.customize_clean Gnat_counterexamples.clean;
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in

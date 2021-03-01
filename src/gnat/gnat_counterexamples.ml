@@ -28,10 +28,14 @@ let get_field_attr attr =
   | ["field"; _; s] -> Some s
   | _ -> None
 
+let is_split_field f =
+  List.exists (fun s -> Strings.has_prefix s f)
+    ["us_split_fields"; "us_split_discrs"; "__split_discrs"; "__split_fields"]
+
+let is_rec_ext_field f = Strings.has_prefix "rec__ext" f
+
 let for_field clean (f, v) =
-  let prefixes =
-    ["us_split_fields"; "us_split_discrs"; "__split_discrs"; "__split_fields"] in
-  if List.exists (fun s -> Strings.has_prefix s f) prefixes then
+  if is_split_field f then
     match v with
     | Record fs ->
         let for_field (f, v) =
@@ -43,7 +47,7 @@ let for_field clean (f, v) =
         match clean#value v with
         | None -> []
         | Some v -> [f, v] )
-  else if Strings.has_prefix "rec__ext" f then
+  else if is_rec_ext_field f then
     []
   else match clean#value v with
     | None -> []
@@ -72,10 +76,34 @@ let in_spark (e: model_element) =
      gnat2why *)
   String.length name > 0 && (name.[0] = '.' || (name.[0] <= '9' && name.[0] >= '0'))
 
+(* Don't clean values that will be removed by [post_clean]. TODO Can we entierly
+   remove this and do all cleaning after retrieving the Model_parser.model? *)
+let clean = object (self)
+  inherit Model_parser.clean
+  method! record fs =
+    if only_first_field2 (List.map fst fs) then
+      (* Clean only the first field *)
+      match fs with
+      | (f, v) :: fs ->
+          Opt.bind (self#value v) @@ fun v ->
+          Some (Record ((f, v) :: fs))
+      | _ -> assert false
+    else
+      let for_field (f, v) =
+        if is_split_field f || is_rec_ext_field f then
+          Some (f, v)
+        else
+          Opt.bind (self#value v) @@ fun v ->
+          Some (f, v) in
+      match Lists.map_filter for_field fs with
+      | [] -> None
+      | fs -> Some (Record fs)
+end
+
 (** Clean values by a) replacing records according to [only_first_field2] and
    simplifying discriminant records b) removing unparsed values, in which the
    function returns [None]. *)
-let clean = object (self)
+let post_clean = object (self)
   inherit Model_parser.clean as super
 
   method! record fs =
