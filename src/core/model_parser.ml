@@ -46,6 +46,7 @@ type model_value =
   | Record of model_record
   | Proj of model_proj
   | Apply of string * model_value list
+  | Var of string
   | Undefined
   | Unparsed of string
 
@@ -257,6 +258,11 @@ let rec convert_model_value value : Json_base.json =
       let m = ("type", Json_base.String "Apply") :: [] in
       let m = ("val", slt) :: m in
       Json_base.Record m
+  | Var v ->
+      Json_base.Record [
+        "type", Json_base.String "Var";
+        "val", Json_base.String v
+      ]
   | Record r -> convert_record r
   | Proj p -> convert_proj p
   | Undefined ->
@@ -265,7 +271,8 @@ let rec convert_model_value value : Json_base.json =
 
 and convert_array a =
   let m_others = ["others", convert_model_value a.arr_others] in
-  convert_indices a.arr_indices @ [Json_base.Record m_others]
+  let cmp_ix i1 i2 = compare_model_value i1.arr_index_key i2.arr_index_key in
+  convert_indices (List.sort cmp_ix a.arr_indices) @ [Json_base.Record m_others]
 
 and convert_indices indices =
   match indices with
@@ -379,6 +386,7 @@ and print_model_value_human fmt (v : model_value) =
   | Record r -> print_record_human fmt r
   | Proj p -> print_proj_human fmt p
   | Bitvector s -> print_bv fmt s
+  | Var v -> fprintf fmt "%s" v
   | Undefined -> fprintf fmt "UNDEFINED"
   | Unparsed s -> fprintf fmt "%s" s
 
@@ -541,6 +549,7 @@ let similar_model_element_names me_nm1 me_nm2 =
                     (Sattr.inter me_nm1.men_attrs me_nm2.men_attrs) in
   Ident.get_model_trace_string ~name:me_nm1.men_name ~attrs:me_nm1.men_attrs
   = Ident.get_model_trace_string ~name:me_nm2.men_name ~attrs:me_nm2.men_attrs
+  && Sattr.equal me_nm1.men_attrs me_nm2.men_attrs
   && Sattr.for_all (fun x ->
          not (Strings.has_prefix "at" x.attr_string)) symm_diff
 
@@ -874,7 +883,7 @@ let add_to_model ?vc_term_attrs model_element model =
       let model_file = Mint.add line_number elements model_file in
       Mstr.add filename model_file model
 
-let recover_name pm list_projs raw_name =
+let recover_name pm fields_projs raw_name =
   let name, attrs =
     try
       let t = Mstr.find raw_name pm.queried_terms in
@@ -882,7 +891,7 @@ let recover_name pm list_projs raw_name =
       | Tapp (ls, []) -> (ls.ls_name.id_string, t.t_attrs)
       | _ -> ("", t.t_attrs)
     with Not_found ->
-      let id = Mstr.find raw_name list_projs in
+      let id = Mstr.find raw_name fields_projs in
       (id.id_string, id.id_attrs) in
   create_model_element_name (get_model_trace_string ~name ~attrs) attrs
 
@@ -892,7 +901,7 @@ let rec replace_projection (const_function : string -> string) =
   let const_function s = try const_function s with Not_found -> s in
   function
   | Integer _ | Decimal _ | Fraction _ | Float _ | Boolean _ | Bitvector _
-  | String _ | Undefined | Unparsed _ as mv -> mv
+  | String _ | Undefined | Var _ | Unparsed _ as mv -> mv
   | Record fs ->
       let aux (f, mv) = const_function f, replace_projection const_function mv in
       Record (List.map aux fs)
@@ -959,7 +968,7 @@ let build_model_rec pm (elts: model_element list) : model_files =
     match loc with
     | None -> model
     | me_location -> add_to_model ~vc_term_attrs {model_elt with me_location} model in
-  let list_projs = list_projs pm and vc_term_attrs = pm.Printer.vc_term_attrs in
+  let fields_projs = fields_projs pm and vc_term_attrs = pm.Printer.vc_term_attrs in
   let process_me me =
     assert (me.me_location = None && me.me_term = None);
     let aux t =
@@ -969,7 +978,7 @@ let build_model_rec pm (elts: model_element list) : model_files =
         | _ -> "", attrs in
       (* Replace projections with their real name *)
       let me_value = replace_projection
-          (fun s -> (recover_name pm list_projs s).men_name)
+          (fun s -> (recover_name pm fields_projs s).men_name)
           me.me_value in
       (* Remove some specific record field related to the front-end language.
          This function is registered. *)
@@ -980,7 +989,15 @@ let build_model_rec pm (elts: model_element list) : model_files =
       let name = List.hd (Strings.bounded_split '@' name 2) in
       let me_name = create_model_element_name name attrs in
       {me_name; me_value; me_location= t.t_loc; me_term= Some t} in
-    Opt.map aux (Mstr.find_opt me.me_name.men_name pm.queried_terms) in
+    match Mstr.find_opt me.me_name.men_name pm.queried_terms with
+    | None ->
+        Debug.dprintf debug "No term for %s@." (why_name_trans me.me_name);
+        None
+    | Some t ->
+        Debug.dprintf debug "@[<h>Term attrs for %s at %a@]@."
+          (why_name_trans me.me_name)
+          (Pp.print_option_or_default "NO LOC" Pretty.print_loc') t.t_loc;
+        Some (aux t) in
   (** Add a model element at the relevant locations *)
   let add_model_elt model me =
     let model = add_to_model ~vc_term_attrs me model in
@@ -1052,7 +1069,8 @@ class clean = object (self)
     | Boolean v     -> self#boolean v  | Bitvector v   -> self#bitvector v
     | Proj (p, v)   -> self#proj p v   | Apply (s, vs) -> self#apply s vs
     | Array a       -> self#array a    | Record fs     -> self#record fs
-    | Undefined     -> self#undefined
+    | Undefined     -> self#undefined  | Var v         -> self#var v
+  method var _ = None
   method unparsed _ = None
   method string v = Some (String v)
   method integer v = Some (Integer v)
@@ -1138,26 +1156,17 @@ let model_for_positions_and_decls model ~positions =
 type model_parser = printer_mapping -> string -> model
 type raw_model_parser = printer_mapping -> string -> model_element list
 
-
-let debug_elements elts =
-  let me_name_trans men = men.men_name in
-  let print_elements = print_model_elements ~sep:Pp.semi ~print_attrs:true
-      ~me_name_trans ~filter_similar:false ~print_model_value ~at_loc:("",0) in
-  Debug.dprintf debug "@[<v>Elements:@ %a@]@." print_elements elts
-
-let debug_files desc files =
-  let me_name_trans men = men.men_name in
-  let print_file = print_model_file ~filter_similar:false ~print_attrs:true
-      ~print_model_value ~me_name_trans in
-   Debug.dprintf debug "@[<v>Files %s:@ %a@]@." desc
-     (Pp.print_list Pp.newline print_file) (Mstr.bindings files)
+let debug_files fs =
+  Debug.dprintf debug "@[<hv2>Files:@ %a@]@."
+    (print_model ~filter_similar:false ~me_name_trans:why_name_trans
+       ~print_attrs:true) {model_files= fs; vc_term_loc= None; vc_term_attrs= Sattr.empty}
 
 let model_parser (raw: raw_model_parser) : model_parser =
   fun ({Printer.vc_term_loc; vc_term_attrs} as pm) str ->
   raw pm str |> (* For example, Smtv2_model_parser.parse for "smtv2" *)
   (fun elts -> debug_elements elts; elts) |>
   build_model_rec pm |>
-  (fun files -> debug_files "before" files; files) |>
+  (fun fs -> debug_files fs; fs) |>
   map_filter_model_files !clean#element |>
   handle_contradictory_vc pm.Printer.vc_term_loc |>
   (fun files -> debug_files "after" files; files) |>
