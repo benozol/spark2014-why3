@@ -1,7 +1,7 @@
 (********************************************************************)
 (*                                                                  *)
 (*  The Why3 Verification Platform   /   The Why3 Development Team  *)
-(*  Copyright 2010-2020   --   Inria - CNRS - Paris-Sud University  *)
+(*  Copyright 2010-2021 --  Inria - CNRS - Paris-Saclay University  *)
 (*                                                                  *)
 (*  This software is distributed under the terms of the GNU Lesser  *)
 (*  General Public License version 2.1, with the special exception  *)
@@ -13,10 +13,9 @@ open Format
 open Why3
 open Pmodule
 
-let usage_msg = sprintf
-  "Usage: %s [options] <file> <expr>\n\
-   Execute the expression in the given file (and --use the necessary modules).\n"
-  (Filename.basename Sys.argv.(0))
+let usage_msg =
+  "<file> <expr>\n\
+   Execute the expression in the given file (and --use the necessary modules)."
 
 let opt_file = ref None
 let opt_exec = ref ""
@@ -64,7 +63,7 @@ let option_list =
     "<qualified_module> use module in the execution";
   ]
 
-let config, _, env =
+let config, env =
   Whyconf.Args.initialize option_list add_opt usage_msg
 
 let () =

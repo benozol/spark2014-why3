@@ -1,7 +1,7 @@
 (********************************************************************)
 (*                                                                  *)
 (*  The Why3 Verification Platform   /   The Why3 Development Team  *)
-(*  Copyright 2010-2020   --   Inria - CNRS - Paris-Sud University  *)
+(*  Copyright 2010-2021 --  Inria - CNRS - Paris-Saclay University  *)
 (*                                                                  *)
 (*  This software is distributed under the terms of the GNU Lesser  *)
 (*  General Public License version 2.1, with the special exception  *)
@@ -298,6 +298,7 @@ val model_for_positions_and_decls : model ->
 (** Method clean#model cleans a model from unparsed values and handles contradictory VCs
    ("the check fails with all inputs"). *)
 class clean : object
+  method model : model -> model
   method element : model_element -> model_element option
   method value : model_value -> model_value option
   method unparsed : string -> model_value option

@@ -1,7 +1,7 @@
 (********************************************************************)
 (*                                                                  *)
 (*  The Why3 Verification Platform   /   The Why3 Development Team  *)
-(*  Copyright 2010-2020   --   Inria - CNRS - Paris-Sud University  *)
+(*  Copyright 2010-2021 --  Inria - CNRS - Paris-Saclay University  *)
 (*                                                                  *)
 (*  This software is distributed under the terms of the GNU Lesser  *)
 (*  General Public License version 2.1, with the special exception  *)
@@ -61,14 +61,11 @@ let () =
   Options.set_steps_bound 100;
   Options.set_is_gui false;
   Worker.set_onmessage (fun msg ->
-			match unmarshal msg with
-			  Goal (id, text, steps) ->
-			  let old_steps = Options.steps_bound () in
-			  if steps > 0 then Options.set_steps_bound steps;
-			  let result = run_alt_ergo_on_task text in
-			  Options.set_steps_bound old_steps;
-			  Worker.post_message (marshal (id,result))
-			| OptionSteps i -> Options.set_steps_bound i)
+      let id, text, steps = unmarshal msg in
+      Options.set_steps_bound steps;
+      let result = run_alt_ergo_on_task text in
+      Worker.post_message (marshal (id, result))
+    )
 
 (*
 Local Variables:
