@@ -38,6 +38,7 @@ let opt_ce_mode = ref false
 let opt_ce_prover = ref "cvc4_ce"
 let opt_warn_prover = ref None
 let opt_check_ce : [`No | `Filter | `Derive] ref = ref `Filter
+let opt_rac_timelimit = ref (Some 120)
 let opt_check_ce_prover = ref (Some "cvc4")
 
 let opt_limit_line : Gnat_expl.limit_mode option ref = ref None
@@ -79,6 +80,9 @@ let set_check_ce = function
 
 let set_check_ce_prover str =
   opt_check_ce_prover := if str = "" then None else Some str
+
+let set_rac_timelimit i =
+  opt_rac_timelimit := if i <= 0 then None else Some i
 
 let set_proof_mode s =
    if s = "no_wp" then
@@ -232,6 +236,10 @@ let options = Arg.align [
           " Check counterexample using RAC. Possible values: no (disabled, by \
            default), filter (retain the counterexample if the RAC check \
            succeeds), derive (derive a counterexample from the RAC execution).";
+   "--rac-timelimit", Arg.Int set_rac_timelimit,
+          Format.asprintf "<steps> Timelimit for RAC when checking counter\
+          examples (default: %a, non-positive values disable the timelimit)"
+          Pp.(print_option_or_default "none" int) !opt_rac_timelimit;
    "--check-ce-prover", Arg.String set_check_ce_prover,
    " Prover to check terms in RAC when they cannot be reduced (none by default)";
    "--ce-prover", Arg.Set_string opt_ce_prover,
@@ -500,6 +508,8 @@ let () =
 let counterexamples = !opt_ce_mode
 
 let check_ce = !opt_check_ce
+
+let rac_timelimit = !opt_rac_timelimit
 
 let check_ce_prover = !opt_check_ce_prover
 

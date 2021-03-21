@@ -39,6 +39,9 @@ val check_ce : [`No | `Filter | `Derive]
 (* Reflects the value of option --check-ce, if and how RAC should be used to check
    counterexamples. *)
 
+val rac_timelimit : int option
+(* Reflects the value of option --rac-timelimit *)
+
 val check_ce_prover : string option
 (* Reflects the value of option --check-ce-prover, which prover to fall back when terms
    cannot be reduced in RAC. *)

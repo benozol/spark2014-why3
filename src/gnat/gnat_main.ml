@@ -155,7 +155,8 @@ let select_model obj ctr pm models =
       match select_model_last_non_empty models with
       | None -> None
       | Some (m, _) ->
-          let mr = check_model reduce_config env pm m in
+          let timelimit = Opt.map float_of_int Gnat_config.rac_timelimit in
+          let mr = check_model ?timelimit reduce_config env pm m in
           let s = ce_summary mr in
           let pp_check fmt obj = Format.fprintf fmt "%s at %a"
               (Gnat_expl.reason_to_ada obj.Gnat_expl.reason)
@@ -199,7 +200,7 @@ let report_messages c obj =
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
               select_model obj c pm pr.Call_provers.pr_models
         | _ -> None in
-      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.post_clean#model m, s) model in
+      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.clean#model m, s) model in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
       Gnat_report.Not_Proved (unproved_task, model, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
