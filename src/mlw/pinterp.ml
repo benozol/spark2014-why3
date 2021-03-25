@@ -2985,6 +2985,7 @@ module Sidpos = struct
      the clone, but we leave the check here to identify possible other sources
      of ambigous model elements. *)
   let check locs id =
+    if id.id_string <> "dummy" then (* Relax for dummy variables in SPARK *)
     match id.id_loc with
     | Some loc -> assert (not (mem (id, loc) locs))
     | _ -> ()
