@@ -145,31 +145,28 @@ let all_split_subp c subp =
 
 let select_model obj ctr pm models =
   let Controller_itp.{controller_config= cnf; controller_env= env} = ctr in
-  let reduce_config =
-    Pinterp.rac_reduce_config_lit cnf env ~trans:"compute_in_goal"
+  let cfg = Pinterp.rac_reduce_config_lit cnf env ~trans:"compute_in_goal"
       ?prover:Gnat_config.check_ce_prover ~try_negate:true () in
   let open Counterexample in
   match Gnat_config.check_ce with
-  | `No -> select_model_last_non_empty models
+  | `No ->
+      let m = select_model_last_non_empty models in
+      Opt.map (fun m -> m, UNKNOWN "No check CE") m
   | `Filter -> (
       match select_model_last_non_empty models with
       | None -> None
-      | Some (m, _) ->
+      | Some m ->
           let timelimit = Opt.map float_of_int Gnat_config.rac_timelimit in
-          let mr = check_model ?timelimit reduce_config env pm m in
+          let mr = check_model ?timelimit cfg env pm m in
           let s = ce_summary mr in
           let pp_check fmt obj = Format.fprintf fmt "%s at %a"
               (Gnat_expl.reason_to_ada obj.Gnat_expl.reason)
               Gnat_loc.print_line_loc (Gnat_loc.orig_loc obj.Gnat_expl.sloc) in
-          let pp_result fmt r = Format.fprintf fmt "%a, %s"
+          let pp_result fmt r = Format.fprintf fmt "%a (%s)"
               Counterexample.print_result_state r.state r.reason in
           Debug.dprintf debug_check_ce_summary "@[<v2>%a --> %a@]@."
             pp_check obj (print_result_summary pp_result) (mr, s);
           if s = BAD then None else Some (m, s) )
-  | `Derive ->
-      let check = true and sort_models = prioritize_first_good_model in
-      Opt.bind (select_model ~check ~reduce_config ~sort_models env pm models)
-        Gnat_counterexamples.model_to_model
 
 let report_messages c obj =
   let s = c.Controller_itp.controller_session in
@@ -189,7 +186,7 @@ let report_messages c obj =
           Opt.map (fun pa -> Session_itp.get_proof_attempt_parent s pa) unproved_pa
       in
       let unproved_task = Opt.map (fun x -> Session_itp.get_task s x) unproved_goal in
-      let model =
+      let m =
         match Opt.map (Session_itp.get_proof_attempt_node s) unproved_pa with
         | Some ({ Session_itp.proof_state = Some pr } as pa) ->
             if pr.Call_provers.pr_answer = Call_provers.StepLimitExceeded then
@@ -200,9 +197,10 @@ let report_messages c obj =
               let pm = Pmodule.restore_module (Theory.restore_theory (Session_itp.theory_name th)) in
               select_model obj c pm pr.Call_provers.pr_models
         | _ -> None in
-      let model = Opt.map (fun (m, s) -> Gnat_counterexamples.clean#model m, s) model in
+      let m =
+        Opt.map (fun (m,st) -> Gnat_counterexamples.post_clean#model m, st) m in
       let manual_info = Opt.bind unproved_pa (Gnat_manual.manual_proof_info s) in
-      Gnat_report.Not_Proved (unproved_task, model, manual_info) in
+      Gnat_report.Not_Proved (unproved_task, m, manual_info) in
   Gnat_report.register obj (C.Save_VCs.check_to_json s obj) result
 
 (* Escaping all debug printings *)
