@@ -270,6 +270,15 @@ let _ =
       Warning.set_hook (fun ?loc:_ line -> Format.fprintf fmt "%s@." line)
     with Not_found -> () );
   Model_parser.customize_clean Gnat_counterexamples.clean;
+  ( try
+      let log = Sys.getenv "GNATWHY3LOG" in
+      Debug.set_flag Counterexample.debug_check_ce_summary;
+      let out = open_out_gen [Open_text; Open_creat; Open_append] 0o666 log in
+      let fmt = Format.formatter_of_out_channel out in
+      Debug.set_debug_formatter fmt;
+      Format.fprintf fmt "@.@.===== %s@." Gnat_config.filename;
+      Warning.set_hook (fun ?loc:_ line -> Format.fprintf fmt "%s@." line)
+    with Not_found -> () );
   Util.init_timing ();
   try
     let c = Gnat_objectives.init_cont () in
