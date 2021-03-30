@@ -35,7 +35,7 @@ val counterexamples : bool
 (* Reflects the value of the option --counterexample, default off
    Counter examples are also disabled when CVC4 is not found *)
 
-val check_ce : [`No | `Filter | `Derive]
+val check_ce : [`No | `Filter]
 (* Reflects the value of option --check-ce, if and how RAC should be used to check
    counterexamples. *)
 

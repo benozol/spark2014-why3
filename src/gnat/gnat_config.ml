@@ -37,7 +37,7 @@ let opt_proof_dir : string option ref = ref None
 let opt_ce_mode = ref false
 let opt_ce_prover = ref "cvc4_ce"
 let opt_warn_prover = ref None
-let opt_check_ce : [`No | `Filter | `Derive] ref = ref `Filter
+let opt_check_ce : [`No | `Filter] ref = ref `Filter
 let opt_rac_timelimit = ref (Some 120)
 let opt_check_ce_prover = ref (Some "cvc4")
 
@@ -73,10 +73,9 @@ let set_filename s =
 let set_check_ce = function
   | "no" -> opt_check_ce := `No
   | "filter" -> opt_check_ce := `Filter
-  | "derive" -> opt_check_ce := `Derive
   | _ -> Gnat_util.abort_with_message ~internal:true
            "argument for option --check-ce should be one of\
-           (no|filter|derive)."
+           (no|filter)."
 
 let set_check_ce_prover str =
   opt_check_ce_prover := if str = "" then None else Some str
@@ -235,7 +234,7 @@ let options = Arg.align [
    "--check-ce", Arg.String set_check_ce,
           " Check counterexample using RAC. Possible values: no (disabled, by \
            default), filter (retain the counterexample if the RAC check \
-           succeeds), derive (derive a counterexample from the RAC execution).";
+           succeeds).";
    "--rac-timelimit", Arg.Int set_rac_timelimit,
           Format.asprintf "<steps> Timelimit for RAC when checking counter\
           examples (default: %a, non-positive values disable the timelimit)"
