@@ -131,6 +131,9 @@ let ident_printer () =
       "map"; "bv"; "default";
       "difference";
 
+     (* From CVC4 *)
+      "char"; "choose";
+
      (* Counterexamples specific keywords *)
       "lambda"; "LAMBDA"; "model";
 

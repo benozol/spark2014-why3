@@ -193,7 +193,7 @@ module D :
     val mk_meta :
       Why3.Ptree.ident -> Why3.Ptree.metarg list -> Why3.Ptree.decl
     val mk_cloneexport :
-      Why3.Ptree.qualid -> Why3.Ptree.clone_subst list -> Why3.Ptree.decl
+      ?loc:Why3.Loc.position -> Why3.Ptree.qualid -> Why3.Ptree.clone_subst list -> Why3.Ptree.decl
     val mk_useexport : Why3.Ptree.qualid -> Why3.Ptree.decl
     val mk_cloneimport :
       ?loc:Why3.Loc.position ->

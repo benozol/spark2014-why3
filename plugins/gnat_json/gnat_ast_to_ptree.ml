@@ -1326,8 +1326,9 @@ let read_channel env path filename c =
   let print_mlw_file ?mark () =
     let pp =
       match mark with
-      | Some (msg, pos) -> Mlw_printer.(with_marker ~msg pos pp_mlw_file)
-      | None -> Mlw_printer.pp_mlw_file in
+      | Some (msg, pos) ->
+          Mlw_printer.(with_marker ~msg pos (pp_mlw_file ~attr:false))
+      | None -> Mlw_printer.pp_mlw_file ~attr:false in
     let out = open_out mlw_filename in
     Format.fprintf (Format.formatter_of_out_channel out) "%a@." pp mlw_file;
     close_out out in

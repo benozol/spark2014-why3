@@ -1,5 +1,4 @@
 open Why3
-open Wstdlib
 
 type goal_id = Session_itp.proofNodeID
 (* This is the type of identifier of goal. They can be queried from the session
@@ -790,44 +789,41 @@ module Save_VCs = struct
     GoalSet.iter (fun x -> l := goal_to_json session x :: !l) obj_rec.toplevel;
     Json_base.List !l
   and goal_to_json session g =
-    let s = Mstr.empty in
-    Json_base.Record
-      (Mstr.add "proof_attempts" (proof_attempts_to_json session g)
-         (Mstr.add "transformations" (transformations_to_json session g) s))
+    Json_base.Record [
+      "proof_attempts", proof_attempts_to_json session g;
+      "transformations", transformations_to_json session g;
+    ]
   and proof_attempts_to_json session g =
-    let s = Mstr.empty in
     let r = Whyconf.Hprover.fold
         (fun prover paid acc ->
            let pa = Session_itp.get_proof_attempt_node session paid in
            let pr_name = prover.Whyconf.prover_name in
            match pa.Session_itp.proof_obsolete, pa.Session_itp.proof_state with
            | false, Some pr ->
-             Mstr.add pr_name (proof_result_to_json pr_name pr) acc
+             (pr_name, proof_result_to_json pr_name pr) :: acc
            | _, _ -> acc)
-        (Session_itp.get_proof_attempt_ids session g) s in
+        (Session_itp.get_proof_attempt_ids session g) [] in
     Json_base.Record r
 
   and proof_result_to_json prover r =
     let answer =
       Pp.sprintf "%a"
         Call_provers.print_prover_answer r.Call_provers.pr_answer in
-    let s = Mstr.empty in
     let steps = Gnat_config.back_convert_steps ~prover r.Call_provers.pr_steps
     in
-    let r =
-      Mstr.add "time" (Json_base.Float r.Call_provers.pr_time)
-        (Mstr.add "steps" (Json_base.Int steps)
-           (Mstr.add "result" (Json_base.String answer) s)) in
-    Json_base.Record r
+    Json_base.Record [
+      "time", Json_base.Float r.Call_provers.pr_time;
+        "steps", Json_base.Int steps;
+      "result", Json_base.String answer;
+    ]
   and transformations_to_json session g =
-    let map =
-      List.fold_left (fun acc tfid ->
+    let r =
+      List.map (fun tfid ->
           let tf_name = Session_itp.get_transf_name session tfid in
-          Mstr.add tf_name (transformation_to_json session tfid) acc)
-        Mstr.empty
+          tf_name, transformation_to_json session tfid)
         (Session_itp.get_transformations session g)
     in
-    Json_base.Record map
+    Json_base.Record r
   and transformation_to_json session tf =
     let transf_goals = Session_itp.get_sub_tasks session tf in
     Json_base.List (List.map (goal_to_json session) transf_goals)
