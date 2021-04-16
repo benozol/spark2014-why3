@@ -1324,10 +1324,11 @@ let read_channel env path filename c =
   (* Defer printing of mlw file until after the typing, to set the marker of located
      exceptions *)
   let print_mlw_file ?mark () =
+    let attr = Debug.test_flag (Debug.lookup_flag "print_attributes") in
     let pp =
       match mark with
-      | Some (msg, pos) -> Mlw_printer.(with_marker ~msg pos pp_mlw_file)
-      | None -> Mlw_printer.pp_mlw_file in
+      | Some (msg, pos) -> Mlw_printer.(with_marker ~msg pos (pp_mlw_file ~attr))
+      | None -> Mlw_printer.pp_mlw_file ~attr in
     let out = open_out mlw_filename in
     Format.fprintf (Format.formatter_of_out_channel out) "%a@." pp mlw_file;
     close_out out in
