@@ -14,7 +14,7 @@ type result_info =
   | Proved of stats * int * int
   | Not_Proved of
        Gnat_expl.extra_info *
-       Model_parser.model option *
+       (Model_parser.model * Counterexample.result option) option *
        (string * string) option
 
 type msg =
@@ -24,7 +24,7 @@ type msg =
     stats_trivial : int;
     check_tree    : Json_base.json;
     extra_info    : Gnat_expl.extra_info;
-    cntexmp_model : Model_parser.model option;
+    cntexmp_model : (Model_parser.model * Counterexample.result option) option;
     manual_proof  : (string * string) option
   }
 
@@ -90,19 +90,47 @@ let spark_counterexample_transform me_name =
      See Flow_Error_Messages.Error_Msg_Proof.Do_Pretty_Cntexmp*)
   me_name.Model_parser.men_name
 
-let print_cntexmp_model fmt model =
-  match model with
-  | None -> ()
-  | Some m ->
-    if not (Model_parser.is_model_empty m) then begin
-      Format.fprintf fmt ", ";
-      print_json_field "cntexmp"
-        (Model_parser.print_model_json
-           ~me_name_trans:spark_counterexample_transform
-           ~vc_line_trans:(fun _ -> "vc_line"))
-        fmt
-        m
-    end
+let print_cntexmp_model fmt = function
+  | Some (m, r) when not (Model_parser.is_model_empty m) ->
+      let vc_line_trans _ =
+        "vc_line" and me_name_trans = spark_counterexample_transform in
+      let print_model =
+        Model_parser.print_model_json ~me_name_trans ~vc_line_trans in
+      let json_result_state = function
+        | None -> Null
+        | Some {Counterexample.state; reason} ->
+            let s =
+              Format.asprintf "%a" Counterexample.print_result_state state in
+            let more = match state with
+              | Counterexample.Rfailure (ctx, t) ->
+                  (* ??? Loop invariants are always initially valid because in
+                     the generated WhyML program the loop condition is tested
+                     separately, before the loop *)
+                  assert (ctx.Pinterp.c_attr <> Vc.expl_loop_init);
+                  let t =
+                    Ident.Sattr.fold Term.t_attr_add ctx.Pinterp.c_attrs t in
+                  let check = match Gnat_expl.search_labels t with
+                    | Some Gnat_expl.{check={id; reason; sloc}} ->
+                        let file, line, col =
+                          Gnat_loc.explode (Gnat_loc.orig_loc sloc) in
+                        Record [
+                          "id", Int id;
+                          "vc_kind", String (Gnat_expl.reason_to_ada reason);
+                          "sloc", Record [
+                            "file", String file;
+                            "line", Int line;
+                            "col", Int col;
+                          ]
+                        ]
+                    | None -> Null in
+                  ["check", check]
+              | _ -> [] in
+            Record (["state", String s; "reason", String reason] @ more) in
+      Format.fprintf fmt ",@ %a,@ %a"
+        (print_json_field "cntexmp" print_model) m
+        (print_json_field "giant_step_rac_result" print_json)
+        (json_result_state r)
+  | _ -> ()
 
 let print_manual_proof_info fmt info =
   match info with
@@ -154,7 +182,7 @@ let print_extra_info fmt i =
   match i with
   | { Gnat_expl.pretty_node = i; inlined = inline } ->
     Format.fprintf fmt ", %a" (print_json_field "extra_info" print_info) (i, inline)
-  
+
 
 let print_json_msg fmt (check, m) =
   Format.fprintf fmt "{%a, %a, %a, %a%a%a%a%a}"
