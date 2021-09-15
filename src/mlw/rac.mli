@@ -45,6 +45,7 @@ module Why : sig
     command:string -> Driver.driver -> Call_provers.resource_limit -> why_prover
 
   val mk_check_term :
+    Whyconf.config -> Env.env ->
     ?metas:(Theory.meta * Theory.meta_arg list) list ->
     ?trans:Task.task Trans.tlist ->
     ?why_prover:why_prover ->
